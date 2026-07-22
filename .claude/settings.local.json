@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C e:/food-manager-server status)",
+      "Bash(npm --version)",
+      "Bash(npx --version)"
+    ]
+  }
+}

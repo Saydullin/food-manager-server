@@ -1,0 +1,234 @@
+// Prisma schema for the Food Manager backend.
+// Auth model: device public-key (passkey-style). Email is OPTIONAL, for recovery only.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// A user account. Identified by username; email is optional and only used for recovery.
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  username      String   @unique
+  // Nullable: email is opt-in. Partial-unique behavior (unique only when present)
+  // is provided by Postgres treating multiple NULLs as distinct on a UNIQUE column.
+  email         String?  @unique
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  devices                 Device[]
+  challenges              Challenge[]
+  refreshTokens           RefreshToken[]
+  recoveryTokens          RecoveryToken[]
+  emailVerificationTokens EmailVerificationToken[]
+
+  @@map("users")
+}
+
+/// A registered device, holding the public half of the device keypair.
+/// The private key never leaves the Android Keystore.
+model Device {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Base64-encoded SubjectPublicKeyInfo (DER) for an Ed25519 or RSA public key.
+  publicKey   String   @unique
+  deviceLabel String?
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime @default(now())
+
+  refreshTokens RefreshToken[]
+
+  @@index([userId])
+  @@map("devices")
+}
+
+/// Short-lived, single-use login challenge. The client signs `nonce` with its
+/// device private key; the server verifies the signature against the device public key.
+model Challenge {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nonce     String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("challenges")
+}
+
+/// Long-lived refresh token. Only the hash is stored; the raw token is returned once.
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId  String   @db.Uuid
+  device    Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([deviceId])
+  @@map("refresh_tokens")
+}
+
+/// Single-use, email-delivered token that lets a user link a NEW device public key
+/// to their existing account after losing their old device. Requires a verified email.
+model RecoveryToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("recovery_tokens")
+}
+
+/// Single-use, email-delivered token that verifies ownership of an email address.
+/// (Not in the original spec's table list, but needed to back the /email/verify endpoint.)
+/// Carries two independent proofs of the same pending (userId, email) pair: a long
+/// opaque link token (tokenHash) and a short numeric code (codeHash) for apps that
+/// can't open a deep link. Either one verifies the email; both share `used`/`email`.
+model EmailVerificationToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // The email this token verifies (so changing email invalidates old links naturally).
+  email     String
+  tokenHash String   @unique
+  expiresAt DateTime
+  // Short numeric code, delivered in the same email as the link. Hashed at rest like
+  // tokenHash. Nullable so pre-migration rows (link-only) remain valid.
+  codeHash      String?
+  codeExpiresAt DateTime?
+  // Failed-attempt counter, since a 6-digit code has a much smaller keyspace than the
+  // link token — this bounds brute-force guesses before the code is invalidated.
+  codeAttempts Int      @default(0)
+  used         Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Food domain
+// ---------------------------------------------------------------------------
+
+/// The core dish/recipe table. Deliberately has no FK to any "dependent" table
+/// (a table that itself references Food, e.g. likes, nutrition, tags) — those
+/// tables point at Food, never the other way. FKs from Food to terminal tables
+/// (images, extended details, etc.) would be fine since nothing depends on them,
+/// but none are modeled yet since none were requested.
+model Food {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  allergens           FoodAllergens?
+  dietaryRestrictions FoodDietaryRestrictions?
+  intolerances        FoodIntolerances?
+  features            FoodFeatures?
+  diets               FoodDiets?
+
+  @@map("foods")
+}
+
+/// Allergen tags for a dish. One row per food, one boolean column per allergen.
+model FoodAllergens {
+  foodId String @id @db.Uuid
+  food   Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  milk      Boolean @default(false)
+  eggs      Boolean @default(false)
+  peanuts   Boolean @default(false)
+  treeNuts  Boolean @default(false)
+  soy       Boolean @default(false)
+  wheat     Boolean @default(false)
+  gluten    Boolean @default(false)
+  fish      Boolean @default(false)
+  shellfish Boolean @default(false)
+  sesame    Boolean @default(false)
+  mustard   Boolean @default(false)
+  celery    Boolean @default(false)
+  lupin     Boolean @default(false)
+  molluscs  Boolean @default(false)
+  sulfites  Boolean @default(false)
+
+  @@map("food_allergens")
+}
+
+/// Dietary-restriction compliance tags for a dish (does it fit the diet, not "does it contain X").
+model FoodDietaryRestrictions {
+  foodId String @id @db.Uuid
+  food   Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  vegetarian  Boolean @default(false)
+  vegan       Boolean @default(false)
+  pescatarian Boolean @default(false)
+  halal       Boolean @default(false)
+  kosher      Boolean @default(false)
+
+  @@map("food_dietary_restrictions")
+}
+
+/// Intolerance tags for a dish. Distinct from allergens (medically different
+/// mechanism), so kept as its own table even where terms overlap (e.g. gluten).
+model FoodIntolerances {
+  foodId String @id @db.Uuid
+  food   Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  lactose   Boolean @default(false)
+  gluten    Boolean @default(false)
+  fructose  Boolean @default(false)
+  histamine Boolean @default(false)
+
+  @@map("food_intolerances")
+}
+
+/// Dish characteristic tags (spice level, macro-leaning descriptors).
+model FoodFeatures {
+  foodId String @id @db.Uuid
+  food   Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  spicy       Boolean @default(false)
+  verySpicy   Boolean @default(false)
+  lowCarb     Boolean @default(false)
+  highProtein Boolean @default(false)
+  lowFat      Boolean @default(false)
+  lowCalorie  Boolean @default(false)
+  highFiber   Boolean @default(false)
+  highSugar   Boolean @default(false)
+  highSodium  Boolean @default(false)
+
+  @@map("food_features")
+}
+
+/// Named-diet compliance tags for a dish.
+model FoodDiets {
+  foodId String @id @db.Uuid
+  food   Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  keto             Boolean @default(false)
+  paleo            Boolean @default(false)
+  mediterranean    Boolean @default(false)
+  diabeticFriendly Boolean @default(false)
+  lowGi            Boolean @default(false)
+
+  @@map("food_diets")
+}

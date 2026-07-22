@@ -1,0 +1,488 @@
+{
+  "info": {
+    "name": "Food Manager API",
+    "_postman_id": "f00d1234-0000-4000-8000-000000000001",
+    "description": "Device-key (passkey-style) auth backend for the Food Manager app. Run requests top-to-bottom within a folder — each request's test script auto-fills variables the next request needs (username, keys, tokens, ids). The 'Dev Helpers' calls (/api/dev/keypair, /api/dev/sign) stand in for the Android Keystore and are only mounted when NODE_ENV != production.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "serverUrl", "value": "http://localhost:3000" },
+    { "key": "baseUrl", "value": "http://localhost:3000/api" },
+    { "key": "username", "value": "" },
+    { "key": "devicePublicKey", "value": "" },
+    { "key": "devicePrivateKey", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "deviceId", "value": "" },
+    { "key": "challengeId", "value": "" },
+    { "key": "nonce", "value": "" },
+    { "key": "signature", "value": "" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "emailVerificationToken", "value": "PASTE_FROM_SERVER_CONSOLE" },
+    { "key": "emailVerificationCode", "value": "PASTE_FROM_SERVER_CONSOLE" },
+    { "key": "recoveryToken", "value": "PASTE_FROM_SERVER_CONSOLE" },
+    { "key": "device2PublicKey", "value": "" },
+    { "key": "device2PrivateKey", "value": "" },
+    { "key": "deviceId2", "value": "" },
+    { "key": "recoveryDevicePublicKey", "value": "" },
+    { "key": "recoveryDevicePrivateKey", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0. Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{serverUrl}}/health", "host": ["{{serverUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Register + Login Flow",
+      "item": [
+        {
+          "name": "1.1 Generate Device Keypair (Device 1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('devicePublicKey', body.publicKey);",
+                  "pm.collectionVariables.set('devicePrivateKey', body.privateKey);",
+                  "pm.test('got keypair', () => pm.expect(body.publicKey).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{serverUrl}}/api/dev/keypair", "host": ["{{serverUrl}}"], "path": ["api", "dev", "keypair"] },
+            "description": "Dev-only helper standing in for the Android Keystore. Generates an Ed25519 keypair."
+          }
+        },
+        {
+          "name": "1.1a Check Username Availability (available)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('username', 'user_' + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('username is available', () => pm.expect(body.available).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/username-available?username={{username}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "username-available"],
+              "query": [{ "key": "username", "value": "{{username}}" }]
+            },
+            "description": "Checks availability of the freshly-generated username before it has been registered — expects available: true. Sets the collectionVariable 'username' that 1.2 Register reuses."
+          }
+        },
+        {
+          "name": "1.2 Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('userId', body.user.id);",
+                  "pm.collectionVariables.set('deviceId', body.device.id);",
+                  "pm.collectionVariables.set('accessToken', body.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', body.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"publicKey\": \"{{devicePublicKey}}\",\n  \"deviceLabel\": \"Test Device 1\",\n  \"email\": \"{{username}}@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.2a Check Username Availability (taken)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('username is taken', () => pm.expect(body.available).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/username-available?username={{username}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "username-available"],
+              "query": [{ "key": "username", "value": "{{username}}" }]
+            },
+            "description": "Same username as 1.2 Register, now that it's taken — expects available: false."
+          }
+        },
+        {
+          "name": "1.3 Challenge",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('challengeId', body.challengeId);",
+                  "pm.collectionVariables.set('nonce', body.nonce);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/challenge", "host": ["{{baseUrl}}"], "path": ["auth", "challenge"] },
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{username}}\"\n}" }
+          }
+        },
+        {
+          "name": "1.4 Sign Nonce (Device 1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('signature', body.signature);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{serverUrl}}/api/dev/sign", "host": ["{{serverUrl}}"], "path": ["api", "dev", "sign"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"privateKey\": \"{{devicePrivateKey}}\",\n  \"message\": \"{{nonce}}\"\n}"
+            },
+            "description": "Dev-only helper: signs the nonce with the device's private key, exactly like the Android Keystore would."
+          }
+        },
+        {
+          "name": "1.5 Verify (login)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('accessToken', body.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', body.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/verify", "host": ["{{baseUrl}}"], "path": ["auth", "verify"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challengeId\": \"{{challengeId}}\",\n  \"signature\": \"{{signature}}\",\n  \"deviceId\": \"{{deviceId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.6 Refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('accessToken', body.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', body.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" },
+            "description": "Rotates the refresh token — old one is revoked, so run this once per test pass."
+          }
+        },
+        {
+          "name": "1.7 Verify with Bad Signature (expect 401)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Reuses the last challengeId/deviceId but sends garbage as the signature.",
+                  "pm.collectionVariables.set('signature', 'Z2FyYmFnZQ==');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/verify", "host": ["{{baseUrl}}"], "path": ["auth", "verify"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challengeId\": \"{{challengeId}}\",\n  \"signature\": \"{{signature}}\",\n  \"deviceId\": \"{{deviceId}}\"\n}"
+            },
+            "description": "Negative test: run 1.3 (Challenge) again first to get a fresh, unused challengeId, then this request."
+          }
+        },
+        {
+          "name": "1.8 Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Email",
+      "item": [
+        {
+          "name": "2.1 Add / Change Email (protected)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/auth/email/add", "host": ["{{baseUrl}}"], "path": ["auth", "email", "add"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{username}}_updated@example.com\"\n}" },
+            "description": "Works right after registration (register already returns an accessToken) or any time later to add/change the email on file. After sending, check the running server's console output for two lines: '[email] Link: .../email/verify?token=...' and '[email] Code: 123456' — either one confirms the same pending email. Paste the token into emailVerificationToken (for 2.2) or the code into emailVerificationCode (for 2.3)."
+          }
+        },
+        {
+          "name": "2.2 Verify Email (by link token)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/email/verify?token={{emailVerificationToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "email", "verify"],
+              "query": [{ "key": "token", "value": "{{emailVerificationToken}}" }]
+            },
+            "description": "Requires emailVerificationToken to be set manually from the server console log (see 2.1). Alternative to 2.3 — either verifies the same pending email, whichever is used first invalidates the other."
+          }
+        },
+        {
+          "name": "2.3 Verify Email (by code, protected)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/auth/email/verify-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "email", "verify-code"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"code\": \"{{emailVerificationCode}}\"\n}" },
+            "description": "Requires emailVerificationCode to be set manually from the server console log (see 2.1) — a 6-digit code as an alternative to clicking the link in 2.2, for clients that can't open a deep link. Verifies the most recent pending email for the authenticated user. The code expires after EMAIL_CODE_TTL seconds (default 10 min) and locks out after EMAIL_CODE_MAX_ATTEMPTS wrong guesses (default 5) — request a fresh one via 2.1 if that happens."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Devices",
+      "item": [
+        {
+          "name": "3.1 List Devices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/auth/devices", "host": ["{{baseUrl}}"], "path": ["auth", "devices"] }
+          }
+        },
+        {
+          "name": "3.2 Generate Device Keypair (Device 2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('device2PublicKey', body.publicKey);",
+                  "pm.collectionVariables.set('device2PrivateKey', body.privateKey);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{serverUrl}}/api/dev/keypair", "host": ["{{serverUrl}}"], "path": ["api", "dev", "keypair"] }
+          }
+        },
+        {
+          "name": "3.3 Add Device (Device 2, protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('deviceId2', body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/auth/devices/add", "host": ["{{baseUrl}}"], "path": ["auth", "devices", "add"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"publicKey\": \"{{device2PublicKey}}\",\n  \"deviceLabel\": \"Test Device 2\"\n}"
+            }
+          }
+        },
+        {
+          "name": "3.4 Revoke Device (Device 2, protected)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/auth/devices/{{deviceId2}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "devices", "{{deviceId2}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Recovery",
+      "item": [
+        {
+          "name": "4.1 Request Recovery",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/recovery/request", "host": ["{{baseUrl}}"], "path": ["auth", "recovery", "request"] },
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{username}}\"\n}" },
+            "description": "Only actually sends a recovery email if the account has a VERIFIED email on file (run 2.1 + 2.2 first). Response is always the same generic message either way — check the server console for the real recovery link/token, then paste it into the recoveryToken collection variable."
+          }
+        },
+        {
+          "name": "4.2 Generate Device Keypair (Recovery Device)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('recoveryDevicePublicKey', body.publicKey);",
+                  "pm.collectionVariables.set('recoveryDevicePrivateKey', body.privateKey);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{serverUrl}}/api/dev/keypair", "host": ["{{serverUrl}}"], "path": ["api", "dev", "keypair"] }
+          }
+        },
+        {
+          "name": "4.3 Confirm Recovery",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('accessToken', body.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', body.refreshToken);",
+                  "pm.collectionVariables.set('deviceId', body.device.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/recovery/confirm", "host": ["{{baseUrl}}"], "path": ["auth", "recovery", "confirm"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recoveryToken\": \"{{recoveryToken}}\",\n  \"newPublicKey\": \"{{recoveryDevicePublicKey}}\",\n  \"deviceLabel\": \"Recovered Device\"\n}"
+            },
+            "description": "Requires recoveryToken to be set manually from the server console log (see 4.1)."
+          }
+        }
+      ]
+    }
+  ]
+}
