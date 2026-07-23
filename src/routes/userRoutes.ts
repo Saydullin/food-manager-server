@@ -7,6 +7,7 @@ import {
   setFoodExceptionsSchema,
   setFoodPreferencesSchema,
   setProfileImageSchema,
+  updateProfileSchema,
   updateSettingsSchema,
 } from '../validation/userSchemas';
 import { setDietsSchema } from '../validation/dietSchemas';
@@ -14,6 +15,15 @@ import { setDietsSchema } from '../validation/dietSchemas';
 export const userRouter = Router();
 
 userRouter.get('/me', requireAuth, userController.getMe);
+
+// Edit the account's profile fields (username, name, age, status, description).
+// PATCH = partial update: only the fields sent are changed. Requires a valid token.
+userRouter.patch(
+  '/me',
+  requireAuth,
+  validateBody(updateProfileSchema),
+  userController.updateMyProfile,
+);
 
 // PUT = set/change (idempotent), DELETE = remove — a REST sub-resource for the picture.
 userRouter.put(

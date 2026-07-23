@@ -32,6 +32,10 @@ const profileSelect = {
   email: true,
   emailVerified: true,
   imageUrl: true,
+  name: true,
+  age: true,
+  status: true,
+  description: true,
   createdAt: true,
   updatedAt: true,
   foodPreferences: { select: { value: true }, orderBy: { value: 'asc' } },
@@ -52,6 +56,10 @@ export interface UserProfile {
   email: string | null;
   emailVerified: boolean;
   imageUrl: string | null;
+  name: string | null;
+  age: number | null;
+  status: string | null;
+  description: string | null;
   createdAt: Date;
   updatedAt: Date;
   foodPreferences: string[];
@@ -66,6 +74,10 @@ const shapeProfile = (row: UserRow): UserProfile => ({
   email: row.email,
   emailVerified: row.emailVerified,
   imageUrl: row.imageUrl,
+  name: row.name,
+  age: row.age,
+  status: row.status,
+  description: row.description,
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
   foodPreferences: row.foodPreferences.map((p) => p.value),
@@ -79,6 +91,52 @@ export const getProfile = async (userId: string): Promise<UserProfile> => {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: profileSelect });
   if (!user) throw AppError.notFound('User not found', 'USER_NOT_FOUND');
   return shapeProfile(user);
+};
+
+// A partial update of the editable profile fields. Only the keys present are
+// changed (the validation layer guarantees at least one). `null` explicitly clears
+// an optional field; `username` is required-when-present (never nulled) since it's
+// the account's unique login handle.
+export interface ProfilePatch {
+  username?: string;
+  name?: string | null;
+  age?: number | null;
+  status?: string | null;
+  description?: string | null;
+}
+
+/**
+ * Applies a partial update to the user's editable profile fields and returns the
+ * full updated profile. `username` is unique, so a collision surfaces as a clean
+ * 409 (USERNAME_TAKEN) — caught from Prisma's P2002 so the check stays atomic (no
+ * TOCTOU race against a concurrent registration/rename).
+ */
+export const updateProfile = async (
+  userId: string,
+  patch: ProfilePatch,
+): Promise<UserProfile> => {
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: patch,
+      select: profileSelect,
+    });
+    return shapeProfile(user);
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      // Only `username` is unique among the patchable fields, so P2002 here is
+      // always a username collision.
+      if (err.code === 'P2002') {
+        throw AppError.conflict('Username is already taken', 'USERNAME_TAKEN');
+      }
+      // The userId comes from a valid access token, so a missing record means the
+      // account was deleted out from under a still-valid token — treat as not found.
+      if (err.code === 'P2025') {
+        throw AppError.notFound('User not found', 'USER_NOT_FOUND');
+      }
+    }
+    throw err;
+  }
 };
 
 /** Sets (or replaces) the profile image URL. Idempotent — covers both "set" and "change". */

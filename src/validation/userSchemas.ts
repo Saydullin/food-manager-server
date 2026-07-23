@@ -14,6 +14,53 @@ export const setProfileImageSchema = z.object({
   imageUrl,
 });
 
+// The unique login handle. Same rules as registration (see authSchemas) so a
+// rename can't produce a username that couldn't have been registered.
+const username = z
+  .string()
+  .trim()
+  .min(3, 'username must be at least 3 characters')
+  .max(20, 'username must be at most 20 characters')
+  .regex(/^[a-zA-Z0-9_]+$/, 'username must be alphanumeric or underscore only');
+
+// A free-form, optional profile text field. Trimmed; a value that is empty after
+// trimming collapses to `null` (i.e. "clear this field"), and an explicit `null`
+// also clears it. Absent (undefined) means "leave unchanged".
+const optionalText = (max: number, label: string) =>
+  z
+    .string()
+    .trim()
+    .max(max, `${label} must be at most ${max} characters`)
+    .transform((v) => (v === '' ? null : v))
+    .nullable()
+    .optional();
+
+// Whole number of years. Bounded to a sane human range; `null` clears it.
+const age = z
+  .number({ invalid_type_error: 'age must be a number' })
+  .int('age must be a whole number')
+  .min(0, 'age must be at least 0')
+  .max(150, 'age must be at most 150')
+  .nullable()
+  .optional();
+
+// Partial update of the editable profile fields: every field is optional, but at
+// least one must be present so an empty body is a clear 400 rather than a no-op.
+// `.strict()` rejects unknown keys, catching client-side typos instead of silently
+// ignoring them.
+export const updateProfileSchema = z
+  .object({
+    username: username.optional(),
+    name: optionalText(100, 'name'),
+    age,
+    status: optionalText(150, 'status'),
+    description: optionalText(2000, 'description'),
+  })
+  .strict()
+  .refine((body) => Object.keys(body).length > 0, {
+    message: 'provide at least one of: username, name, age, status, description',
+  });
+
 // A single free-form food tag (a preference like "spicy"/"italian" or an
 // exception like "cilantro"). Normalized to trimmed + lowercase so the list
 // dedupes case-insensitively and matches the DB unique constraint on (userId, value).

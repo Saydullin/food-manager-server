@@ -8,6 +8,11 @@ export const getMe = asyncHandler(async (req: AuthenticatedRequest, res: Respons
   res.status(200).json({ user });
 });
 
+export const updateMyProfile = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const user = await userService.updateProfile(req.auth!.userId, req.body);
+  res.status(200).json({ user });
+});
+
 export const setProfileImage = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const user = await userService.setProfileImage(req.auth!.userId, req.body.imageUrl);
   res.status(200).json({ user });

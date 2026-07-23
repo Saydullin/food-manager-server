@@ -22,6 +22,14 @@ model User {
   // the file elsewhere and sends the URL), mirroring how Food.imageUrl works. Null
   // means no picture is set — the default after registration.
   imageUrl      String?
+  // Free-form, user-editable profile fields. All optional (null after registration)
+  // and edited via PATCH /users/me. `name` is a display name (distinct from the
+  // unique login `username`); `status` is a short one-liner; `description` is the
+  // longer "about me". `age` is stored as a whole number of years.
+  name          String?
+  age           Int?
+  status        String?
+  description   String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

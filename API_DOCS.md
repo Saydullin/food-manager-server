@@ -91,15 +91,33 @@ Body: `{ publicKey, deviceLabel? }` → 201 `{ id, deviceLabel, createdAt }`
 
 ## Profile
 
+Editable account fields, all optional and `null` until the user fills them in:
+
+- `username` — the **unique** login handle (3–20 chars, `[a-zA-Z0-9_]`). Required at registration
+  and changeable here; renaming to a handle already in use returns `409 USERNAME_TAKEN`.
+- `name` — display name (≤ 100 chars); distinct from `username`.
+- `age` — whole number of years, `0`–`150`.
+- `status` — a short one-liner (≤ 150 chars).
+- `description` — the longer "about me" (≤ 2000 chars).
+
 The profile picture is stored as a URL — the client uploads the image file to its own
 storage/CDN and sends the resulting `https://…` link here (same convention as food images).
 `imageUrl` is `null` until set, and available any time after registration.
 
 ### GET /users/me  🔒
 → 200 `{ user }` where `user` is
-`{ id, username, email, emailVerified, imageUrl, createdAt, updatedAt, foodPreferences, foodExceptions, diets, settings }`.
+`{ id, username, email, emailVerified, imageUrl, name, age, status, description, createdAt, updatedAt, foodPreferences, foodExceptions, diets, settings }`.
 `settings` is the object described under **Settings** below — so a single `GET /users/me`
 gives the client everything, including the user's preferences, right after login.
+
+### PATCH /users/me  🔒
+Edit the profile fields. Body: any **non-empty** subset of
+`{ username?, name?, age?, status?, description? }`. Only the fields you send change; the rest
+keep their current value (partial update). For the optional text fields (`name`, `status`,
+`description`), send `null` (or an empty string) to **clear** a field. An empty body, an unknown
+field, or an invalid value returns `400`; a `username` already taken by another account returns
+`409 USERNAME_TAKEN`.
+→ 200 `{ user }` (the full updated profile, same shape as `GET /users/me`)
 
 ### PUT /users/me/image  🔒
 Body: `{ imageUrl }` — an `http(s)` URL, max 2048 chars. Used for both **setting** and **changing**

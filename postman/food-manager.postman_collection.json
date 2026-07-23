@@ -582,6 +582,7 @@
                   "const body = pm.response.json();",
                   "pm.test('returns the user profile', () => pm.expect(body.user).to.have.property('id'));",
                   "pm.test('profile exposes imageUrl', () => pm.expect(body.user).to.have.property('imageUrl'));",
+                  "pm.test('profile exposes editable fields', () => ['name','age','status','description'].forEach((k) => pm.expect(body.user).to.have.property(k)));",
                   "pm.test('profile exposes foodPreferences array', () => pm.expect(body.user.foodPreferences).to.be.an('array'));",
                   "pm.test('profile exposes foodExceptions array', () => pm.expect(body.user.foodExceptions).to.be.an('array'));",
                   "pm.test('profile exposes diets array', () => pm.expect(body.user.diets).to.be.an('array'));"
@@ -642,6 +643,36 @@
             "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
             "url": { "raw": "{{baseUrl}}/users/me/image", "host": ["{{baseUrl}}"], "path": ["users", "me", "image"] },
             "description": "Removes the profile picture (sets imageUrl back to null). Returns the full updated profile."
+          }
+        },
+        {
+          "name": "5.4 Edit Profile (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('name was saved', () => pm.expect(body.user.name).to.eql('Alex Morgan'));",
+                  "pm.test('age was saved', () => pm.expect(body.user.age).to.eql(28));",
+                  "pm.test('status was saved', () => pm.expect(body.user.status).to.eql('Hungry for good food'));",
+                  "pm.test('description was saved', () => pm.expect(body.user.description).to.eql('I love trying new recipes.'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alex Morgan\",\n  \"age\": 28,\n  \"status\": \"Hungry for good food\",\n  \"description\": \"I love trying new recipes.\"\n}"
+            },
+            "description": "Partial update of the editable profile fields. Send any non-empty subset of { username?, name?, age?, status?, description? } — only the fields present change. username is the unique login handle (3-20 chars, [a-zA-Z0-9_]); a value already taken by another account returns 409 USERNAME_TAKEN. For the text fields (name/status/description) send null (or \"\") to clear a field. Returns the full updated profile. To also test renaming, add a \"username\" field to the body."
           }
         }
       ]
