@@ -33,6 +33,7 @@ model User {
   foodPreferences         UserFoodPreference[]
   foodExceptions          UserFoodException[]
   diets                   UserDiet[]
+  settings                UserSettings?
 
   @@map("users")
 }
@@ -102,6 +103,34 @@ model UserDiet {
   @@index([userId])
   @@index([dietId])
   @@map("user_diets")
+}
+
+/// The UI theme the client should render in. SYSTEM defers to the device's OS
+/// setting (the client resolves it to light/dark at render time); LIGHT/DARK pin
+/// it explicitly. Modeled as an enum since the set is fixed — unlike the diet
+/// catalog, new values here are a deliberate schema change, not runtime data.
+enum Theme {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+/// Per-user client-side preferences (language, theme, push notifications), one
+/// row per user (1:1). Kept in its own table rather than as columns on User so
+/// new settings can be added without touching the core account row — the same
+/// concern-splitting the Food* tables apply to Food. A default row is created at
+/// registration; reads fall back to the column defaults if a row is ever missing.
+model UserSettings {
+  userId                   String   @id @db.Uuid
+  user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // BCP-47 language tag the client renders in (e.g. "en", "ru", "en-US").
+  language                 String   @default("en")
+  theme                    Theme    @default(SYSTEM)
+  pushNotificationsEnabled Boolean  @default(true)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@map("user_settings")
 }
 
 /// A registered device, holding the public half of the device keypair.

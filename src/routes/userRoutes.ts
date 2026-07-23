@@ -7,6 +7,7 @@ import {
   setFoodExceptionsSchema,
   setFoodPreferencesSchema,
   setProfileImageSchema,
+  updateSettingsSchema,
 } from '../validation/userSchemas';
 import { setDietsSchema } from '../validation/dietSchemas';
 
@@ -46,4 +47,15 @@ userRouter.put(
   requireAuth,
   validateBody(setDietsSchema),
   dietController.setMyDiets,
+);
+
+// Client-side settings (language, theme, push notifications). GET reads the current
+// set (available right after registration/login); PATCH applies a partial update —
+// only the fields sent are changed. Both require a valid access token.
+userRouter.get('/me/settings', requireAuth, userController.getMySettings);
+userRouter.patch(
+  '/me/settings',
+  requireAuth,
+  validateBody(updateSettingsSchema),
+  userController.updateMySettings,
 );

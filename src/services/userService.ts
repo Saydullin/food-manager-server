@@ -1,6 +1,28 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, Theme } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { AppError } from '../utils/errors';
+
+// The public shape of a user's client-side settings.
+export interface UserSettings {
+  language: string;
+  theme: Theme;
+  pushNotificationsEnabled: boolean;
+}
+
+// The defaults a brand-new (or row-less) user's settings resolve to. Mirrors the
+// column defaults in schema.prisma so a missing row reads the same as a fresh one.
+export const DEFAULT_SETTINGS: UserSettings = {
+  language: 'en',
+  theme: Theme.SYSTEM,
+  pushNotificationsEnabled: true,
+};
+
+// The settings columns exposed to clients (no userId/timestamps).
+const settingsSelect = {
+  language: true,
+  theme: true,
+  pushNotificationsEnabled: true,
+} as const;
 
 // What Prisma selects for a profile — includes the free-form food preference and
 // exception lists (as related rows). The public shape flattens those to string[].
@@ -16,6 +38,8 @@ const profileSelect = {
   foodExceptions: { select: { value: true }, orderBy: { value: 'asc' } },
   // Selected diets, flattened to their catalog codes and ordered like the catalog.
   diets: { select: { diet: { select: { code: true } } }, orderBy: { diet: { sortOrder: 'asc' } } },
+  // 1:1 settings row; may be null for accounts that predate the settings table.
+  settings: { select: settingsSelect },
 } as const;
 
 type UserRow = Prisma.UserGetPayload<{ select: typeof profileSelect }>;
@@ -33,6 +57,7 @@ export interface UserProfile {
   foodPreferences: string[];
   foodExceptions: string[];
   diets: string[];
+  settings: UserSettings;
 }
 
 const shapeProfile = (row: UserRow): UserProfile => ({
@@ -46,6 +71,8 @@ const shapeProfile = (row: UserRow): UserProfile => ({
   foodPreferences: row.foodPreferences.map((p) => p.value),
   foodExceptions: row.foodExceptions.map((e) => e.value),
   diets: row.diets.map((d) => d.diet.code),
+  // Fall back to defaults if no row exists (pre-settings accounts).
+  settings: row.settings ?? { ...DEFAULT_SETTINGS },
 });
 
 export const getProfile = async (userId: string): Promise<UserProfile> => {
@@ -115,6 +142,48 @@ export const setFoodExceptions = async (
     prisma.userFoodException.createMany({ data: values.map((value) => ({ userId, value })) }),
   ]);
   return getProfile(userId);
+};
+
+/**
+ * Returns the user's client-side settings. If no row exists yet (an account that
+ * predates the settings table), confirms the user is real, then returns the
+ * defaults — so the client always gets a consistent, populated settings object.
+ */
+export const getSettings = async (userId: string): Promise<UserSettings> => {
+  const row = await prisma.userSettings.findUnique({
+    where: { userId },
+    select: settingsSelect,
+  });
+  if (row) return row;
+  await ensureUserExists(userId);
+  return { ...DEFAULT_SETTINGS };
+};
+
+// A partial settings update: only the provided fields change (validated + defaulted
+// to "at least one field present" by the validation layer).
+export interface SettingsPatch {
+  language?: string;
+  theme?: Theme;
+  pushNotificationsEnabled?: boolean;
+}
+
+/**
+ * Applies a partial update to the user's settings and returns the full updated set.
+ * Upsert (not update) so it also works for accounts that predate the settings table:
+ * an existing row is merged with `patch`; a missing one is created from the column
+ * defaults overlaid with `patch`.
+ */
+export const updateSettings = async (
+  userId: string,
+  patch: SettingsPatch,
+): Promise<UserSettings> => {
+  await ensureUserExists(userId);
+  return prisma.userSettings.upsert({
+    where: { userId },
+    create: { userId, ...patch },
+    update: patch,
+    select: settingsSelect,
+  });
 };
 
 // The userId comes from a valid access token; a missing record means the account

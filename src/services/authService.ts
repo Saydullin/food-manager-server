@@ -83,7 +83,9 @@ export const registerUser = async (input: RegisterInput) => {
   await assertPublicKeyAvailable(input.publicKey);
 
   const user = await prisma.user.create({
-    data: { username: input.username, email: input.email ?? null },
+    // Give every new account a default settings row (language/theme/push) up front,
+    // so the client can read its settings immediately after registration/login.
+    data: { username: input.username, email: input.email ?? null, settings: { create: {} } },
   });
   const device = await prisma.device.create({
     data: { userId: user.id, publicKey: input.publicKey, deviceLabel: input.deviceLabel ?? null },

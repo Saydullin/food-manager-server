@@ -96,7 +96,10 @@ storage/CDN and sends the resulting `https://…` link here (same convention as 
 `imageUrl` is `null` until set, and available any time after registration.
 
 ### GET /users/me  🔒
-→ 200 `{ user: { id, username, email, emailVerified, imageUrl, createdAt, updatedAt } }`
+→ 200 `{ user }` where `user` is
+`{ id, username, email, emailVerified, imageUrl, createdAt, updatedAt, foodPreferences, foodExceptions, diets, settings }`.
+`settings` is the object described under **Settings** below — so a single `GET /users/me`
+gives the client everything, including the user's preferences, right after login.
 
 ### PUT /users/me/image  🔒
 Body: `{ imageUrl }` — an `http(s)` URL, max 2048 chars. Used for both **setting** and **changing**
@@ -106,5 +109,27 @@ the picture (idempotent).
 ### DELETE /users/me/image  🔒
 Removes the picture (sets `imageUrl` back to `null`).
 → 200 `{ user }` (the full updated profile)
+
+## Settings
+
+Per-user client-side preferences: `language`, `theme`, and `pushNotificationsEnabled`. Every
+account gets a default set the moment it registers (`{ language: "en", theme: "SYSTEM",
+pushNotificationsEnabled: true }`), so the client can read settings right after registration or
+login — either embedded in `GET /users/me`, or via the dedicated endpoint below. More settings
+may be added over time; treat the object as open and ignore unknown fields you don't use.
+
+- `language` — a BCP-47 language tag the client renders in (e.g. `"en"`, `"ru"`, `"en-US"`).
+- `theme` — one of `"LIGHT"`, `"DARK"`, `"SYSTEM"`. `SYSTEM` follows the device's OS theme;
+  the client resolves it to light/dark at render time.
+- `pushNotificationsEnabled` — boolean; whether the client should show push notifications.
+
+### GET /users/me/settings  🔒
+→ 200 `{ settings: { language, theme, pushNotificationsEnabled } }`
+
+### PATCH /users/me/settings  🔒
+Body: any **non-empty** subset of `{ language?, theme?, pushNotificationsEnabled? }`. Only the
+fields you send are changed; the rest keep their current value (partial update). An empty body,
+an unknown field, or an invalid value returns 400.
+→ 200 `{ settings }` (the full updated settings)
 
 🔒 = requires `Authorization: Bearer <accessToken>`

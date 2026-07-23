@@ -29,3 +29,13 @@ export const setFoodExceptions = asyncHandler(async (req: AuthenticatedRequest, 
   const user = await userService.setFoodExceptions(req.auth!.userId, req.body.exceptions);
   res.status(200).json({ user });
 });
+
+export const getMySettings = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const settings = await userService.getSettings(req.auth!.userId);
+  res.status(200).json({ settings });
+});
+
+export const updateMySettings = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const settings = await userService.updateSettings(req.auth!.userId, req.body);
+  res.status(200).json({ settings });
+});

@@ -39,3 +39,33 @@ export const setFoodPreferencesSchema = z.object({
 export const setFoodExceptionsSchema = z.object({
   exceptions: foodTagList,
 });
+
+// A BCP-47 language tag the client renders in (e.g. "en", "ru", "en-US"). Kept
+// permissive (a primary subtag plus optional region/variant subtags) rather than
+// pinned to a fixed list, since the client owns the set of supported locales.
+const language = z
+  .string()
+  .trim()
+  .max(35, 'language must be at most 35 characters')
+  .regex(
+    /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/,
+    'language must be a BCP-47 language tag (e.g. "en", "en-US")',
+  );
+
+// The fixed set of UI themes. Mirrors the Theme enum in schema.prisma.
+const theme = z.enum(['LIGHT', 'DARK', 'SYSTEM']);
+
+// Partial update of the user's settings: every field is optional, but at least one
+// must be present so an empty body is a clear 400 rather than a silent no-op.
+// `.strict()` rejects unknown keys, catching client-side typos (e.g. a misspelled
+// "pushNotification") instead of silently ignoring them.
+export const updateSettingsSchema = z
+  .object({
+    language: language.optional(),
+    theme: theme.optional(),
+    pushNotificationsEnabled: z.boolean().optional(),
+  })
+  .strict()
+  .refine((body) => Object.keys(body).length > 0, {
+    message: 'provide at least one of: language, theme, pushNotificationsEnabled',
+  });

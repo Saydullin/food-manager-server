@@ -32,7 +32,10 @@
     { "key": "profileImageUrl", "value": "https://example.com/avatars/me.png" },
     { "key": "foodPreferences", "value": "[\"spicy\", \"italian\"]" },
     { "key": "foodExceptions", "value": "[\"cilantro\", \"mushrooms\"]" },
-    { "key": "userDiets", "value": "[\"VEGETARIAN\", \"VEGAN\"]" }
+    { "key": "userDiets", "value": "[\"VEGETARIAN\", \"VEGAN\"]" },
+    { "key": "settingsLanguage", "value": "ru" },
+    { "key": "settingsTheme", "value": "DARK" },
+    { "key": "pushNotificationsEnabled", "value": "false" }
   ],
   "item": [
     {
@@ -760,6 +763,71 @@
             },
             "body": { "mode": "raw", "raw": "{\n  \"diets\": {{userDiets}}\n}" },
             "description": "Replaces the authenticated user's selected diets with the given list of enum codes from the catalog (7.1) — e.g. [\"VEGETARIAN\", \"VEGAN\"]. Codes are upper-cased and de-duplicated; every code must exist in the catalog (an unknown code returns 400 UNKNOWN_DIET). Idempotent — the whole selection is replaced each call, and an empty array [] clears it. Edit the 'userDiets' collection variable to change what's sent. Returns the full updated profile, whose diets array is ordered like the catalog."
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Settings",
+      "item": [
+        {
+          "name": "8.1 Get My Settings (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns a settings object', () => pm.expect(body.settings).to.be.an('object'));",
+                  "pm.test('exposes language', () => pm.expect(body.settings).to.have.property('language'));",
+                  "pm.test('exposes theme', () => pm.expect(['LIGHT', 'DARK', 'SYSTEM']).to.include(body.settings.theme));",
+                  "pm.test('exposes pushNotificationsEnabled', () => pm.expect(body.settings.pushNotificationsEnabled).to.be.a('boolean'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me", "settings"]
+            },
+            "description": "Returns the authenticated user's client-side settings { language, theme, pushNotificationsEnabled }. Every account gets a default set at registration ({ language: 'en', theme: 'SYSTEM', pushNotificationsEnabled: true }), so this works immediately after register/login. The same object is also embedded in GET /users/me (5.1)."
+          }
+        },
+        {
+          "name": "8.2 Update Settings (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('language was saved', () => pm.expect(body.settings.language).to.eql(pm.collectionVariables.get('settingsLanguage')));",
+                  "pm.test('theme was saved', () => pm.expect(body.settings.theme).to.eql(pm.collectionVariables.get('settingsTheme')));",
+                  "pm.test('push flag was saved', () => pm.expect(body.settings.pushNotificationsEnabled).to.eql(pm.collectionVariables.get('pushNotificationsEnabled') === 'true'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me", "settings"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"language\": \"{{settingsLanguage}}\",\n  \"theme\": \"{{settingsTheme}}\",\n  \"pushNotificationsEnabled\": {{pushNotificationsEnabled}}\n}" },
+            "description": "Partial update of the authenticated user's settings — send any non-empty subset of { language, theme, pushNotificationsEnabled } and only those fields change. language is a BCP-47 tag (e.g. 'en', 'ru', 'en-US'); theme is one of LIGHT|DARK|SYSTEM; pushNotificationsEnabled is a boolean. An empty body, an unknown key, or an invalid value returns 400. Edit the settingsLanguage / settingsTheme / pushNotificationsEnabled collection variables to change what's sent. Returns the full updated settings."
           }
         }
       ]
