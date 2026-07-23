@@ -25,7 +25,8 @@
     { "key": "device2PrivateKey", "value": "" },
     { "key": "deviceId2", "value": "" },
     { "key": "recoveryDevicePublicKey", "value": "" },
-    { "key": "recoveryDevicePrivateKey", "value": "" }
+    { "key": "recoveryDevicePrivateKey", "value": "" },
+    { "key": "profileImageUrl", "value": "https://example.com/avatars/me.png" }
   ],
   "item": [
     {
@@ -480,6 +481,82 @@
               "raw": "{\n  \"recoveryToken\": \"{{recoveryToken}}\",\n  \"newPublicKey\": \"{{recoveryDevicePublicKey}}\",\n  \"deviceLabel\": \"Recovered Device\"\n}"
             },
             "description": "Requires recoveryToken to be set manually from the server console log (see 4.1)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Profile",
+      "item": [
+        {
+          "name": "5.1 Get My Profile (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns the user profile', () => pm.expect(body.user).to.have.property('id'));",
+                  "pm.test('profile exposes imageUrl', () => pm.expect(body.user).to.have.property('imageUrl'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] },
+            "description": "Returns the authenticated user's profile, including the current imageUrl (null when no picture is set)."
+          }
+        },
+        {
+          "name": "5.2 Set / Change Profile Image (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('imageUrl was saved', () => pm.expect(body.user.imageUrl).to.eql(pm.collectionVariables.get('profileImageUrl')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/users/me/image", "host": ["{{baseUrl}}"], "path": ["users", "me", "image"] },
+            "body": { "mode": "raw", "raw": "{\n  \"imageUrl\": \"{{profileImageUrl}}\"\n}" },
+            "description": "Sets or changes the profile picture — idempotent, so run it again with a different profileImageUrl to change the image. imageUrl must be an http(s) URL (max 2048 chars). Returns the full updated profile."
+          }
+        },
+        {
+          "name": "5.3 Remove Profile Image (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('imageUrl is cleared', () => pm.expect(body.user.imageUrl).to.eql(null));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/users/me/image", "host": ["{{baseUrl}}"], "path": ["users", "me", "image"] },
+            "description": "Removes the profile picture (sets imageUrl back to null). Returns the full updated profile."
           }
         }
       ]

@@ -18,6 +18,10 @@ model User {
   // is provided by Postgres treating multiple NULLs as distinct on a UNIQUE column.
   email         String?  @unique
   emailVerified Boolean  @default(false)
+  // Optional profile picture. Stores an http(s) URL to the image (the client uploads
+  // the file elsewhere and sends the URL), mirroring how Food.imageUrl works. Null
+  // means no picture is set — the default after registration.
+  imageUrl      String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -102,22 +106,22 @@ model RecoveryToken {
 /// opaque link token (tokenHash) and a short numeric code (codeHash) for apps that
 /// can't open a deep link. Either one verifies the email; both share `used`/`email`.
 model EmailVerificationToken {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @db.Uuid
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @db.Uuid
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   // The email this token verifies (so changing email invalidates old links naturally).
-  email     String
-  tokenHash String   @unique
-  expiresAt DateTime
+  email         String
+  tokenHash     String    @unique
+  expiresAt     DateTime
   // Short numeric code, delivered in the same email as the link. Hashed at rest like
   // tokenHash. Nullable so pre-migration rows (link-only) remain valid.
   codeHash      String?
   codeExpiresAt DateTime?
   // Failed-attempt counter, since a 6-digit code has a much smaller keyspace than the
   // link token — this bounds brute-force guesses before the code is invalidated.
-  codeAttempts Int      @default(0)
-  used         Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  codeAttempts  Int       @default(0)
+  used          Boolean   @default(false)
+  createdAt     DateTime  @default(now())
 
   @@index([userId])
   @@map("email_verification_tokens")

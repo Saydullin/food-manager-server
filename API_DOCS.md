@@ -27,7 +27,9 @@ for the reasoning.
 
 ### POST /auth/register
 Body: `{ username, publicKey, deviceLabel?, email? }`
-→ 201 `{ user, device, accessToken, refreshToken }`
+→ 201 `{ user, device, accessToken, refreshToken }` where `user` is
+`{ id, username, email, emailVerified, imageUrl }` (`imageUrl` is `null` on a fresh account —
+set it later via the Profile endpoints below).
 
 ### POST /auth/challenge
 Body: `{ username }`
@@ -72,5 +74,23 @@ Body: `{ publicKey, deviceLabel? }` → 201 `{ id, deviceLabel, createdAt }`
 
 ### DELETE /auth/devices/:deviceId  🔒
 → 200 `{ message }`
+
+## Profile
+
+The profile picture is stored as a URL — the client uploads the image file to its own
+storage/CDN and sends the resulting `https://…` link here (same convention as food images).
+`imageUrl` is `null` until set, and available any time after registration.
+
+### GET /users/me  🔒
+→ 200 `{ user: { id, username, email, emailVerified, imageUrl, createdAt, updatedAt } }`
+
+### PUT /users/me/image  🔒
+Body: `{ imageUrl }` — an `http(s)` URL, max 2048 chars. Used for both **setting** and **changing**
+the picture (idempotent).
+→ 200 `{ user }` (the full updated profile)
+
+### DELETE /users/me/image  🔒
+Removes the picture (sets `imageUrl` back to `null`).
+→ 200 `{ user }` (the full updated profile)
 
 🔒 = requires `Authorization: Bearer <accessToken>`

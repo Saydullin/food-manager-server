@@ -101,6 +101,7 @@ export const registerUser = async (input: RegisterInput) => {
       username: user.username,
       email: user.email,
       emailVerified: user.emailVerified,
+      imageUrl: user.imageUrl,
     },
     device: { id: device.id, deviceLabel: device.deviceLabel },
     ...session,
