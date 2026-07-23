@@ -42,6 +42,7 @@ model User {
   foodExceptions          UserFoodException[]
   diets                   UserDiet[]
   settings                UserSettings?
+  foodInteractions        FoodInteraction[]
 
   @@map("users")
 }
@@ -259,7 +260,15 @@ model Food {
   id          String   @id @default(uuid()) @db.Uuid
   name        String
   description String?
+  // Legacy single "cover" image. The 1..7-image gallery lives in FoodImage; this
+  // stays as an optional cover/fallback (the API's `images` array falls back to it
+  // when the food has no FoodImage rows yet).
   imageUrl    String?
+  // The dish's cuisine, as a FK into the server-owned Cuisine catalog. Nullable —
+  // a dish may be uncategorized. This is a FK to a *terminal* reference table
+  // (nothing depends on Food through it), which the food_table.md rule allows.
+  cuisineId   String?  @db.Uuid
+  cuisine     Cuisine? @relation(fields: [cuisineId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -268,7 +277,14 @@ model Food {
   intolerances        FoodIntolerances?
   features            FoodFeatures?
   diets               FoodDiets?
+  nutrition           FoodNutrition?
+  images              FoodImage[]
+  interactions        FoodInteraction[]
 
+  // The feed pages by (createdAt, id) and excludes already-swiped dishes; this
+  // composite index keeps that ordered scan efficient.
+  @@index([createdAt, id])
+  @@index([cuisineId])
   @@map("foods")
 }
 
@@ -338,6 +354,8 @@ model FoodFeatures {
   highFiber   Boolean @default(false)
   highSugar   Boolean @default(false)
   highSodium  Boolean @default(false)
+  sweet       Boolean @default(false)
+  sugarFree   Boolean @default(false)
 
   @@map("food_features")
 }
@@ -354,4 +372,112 @@ model FoodDiets {
   lowGi            Boolean @default(false)
 
   @@map("food_diets")
+}
+
+/// Per-serving nutrition for a dish. One row per food (1:1). Split out of Food so
+/// the core dish row stays lean and nutrition can grow (protein/fat/carbs — КБЖУ)
+/// without touching Food, mirroring how the tag tables are separated. All fields
+/// nullable — a dish may be listed before its nutrition is filled in.
+model FoodNutrition {
+  foodId String @id @db.Uuid
+  food   Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  // Energy per serving, in kilocalories.
+  calories Int?
+  // How many servings the dish yields.
+  servings Int?
+  // КБЖУ macros per serving, in grams. Optional; here so future recommendation
+  // scoring can use them without another migration.
+  protein  Float?
+  fat      Float?
+  carbs    Float?
+
+  @@map("food_nutrition")
+}
+
+/// An image in a dish's gallery. A dish has 1..7 of these (the 7-image cap is
+/// enforced at write time, not by the DB). `position` orders the gallery; the
+/// first (lowest position) doubles as the cover. Terminal table — it references
+/// Food, nothing references it.
+model FoodImage {
+  id        String   @id @default(uuid()) @db.Uuid
+  foodId    String   @db.Uuid
+  food      Food     @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  url       String
+  // 0-based display order within the dish's gallery. Unique per dish so two images
+  // can't claim the same slot.
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([foodId, position])
+  @@index([foodId])
+  @@map("food_images")
+}
+
+/// The server-owned catalog of cuisines a dish can belong to (e.g. "ITALIAN").
+/// Same pattern as Diet: NOT user-authored, `code` is a stable machine-readable
+/// enum the client maps to a localized name, and new cuisines are added by
+/// inserting rows — no enum change or code deploy. Referenced by Food.cuisineId.
+model Cuisine {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique
+  // Presentation order for the catalog; admin-controllable, ties broken by code.
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  foods Food[]
+
+  @@map("cuisines")
+}
+
+/// What a swipe means. A fixed, code-level set (like Theme), so modeled as an enum
+/// rather than a catalog table: adding a value is a deliberate schema + code change.
+enum FoodInteractionAction {
+  LIKE
+  SKIP
+  DISLIKE
+}
+
+/// Why a user hit "Hate it" on a dish. Only meaningful when action = DISLIKE.
+/// DISLIKE_TAG / WRONG_CUISINE carry the specific tag/cuisine code in
+/// FoodInteraction.reasonDetail; the rest stand alone. These are the raw negative
+/// signals the future recommender learns from.
+enum FoodDislikeReason {
+  DISLIKE_TAG
+  WRONG_CUISINE
+  ALREADY_ATE
+  ALLERGEN
+  NOT_IN_MOOD
+  OTHER
+}
+
+/// One user's verdict on one dish — the swipe. At most one row per (user, dish):
+/// re-swiping updates it (an upsert), so this table also doubles as the "already
+/// seen" set the feed subtracts. This is the primary training signal for the
+/// future preference-based recommender, which is why the dislike reason/detail are
+/// captured, not just the like/skip.
+model FoodInteraction {
+  id     String                @id @default(uuid()) @db.Uuid
+  userId String                @db.Uuid
+  user   User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodId String                @db.Uuid
+  food   Food                  @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  action FoodInteractionAction
+
+  // Populated only for DISLIKE. `reasonDetail` holds the specific tag code
+  // ("SPICY", "MILK", ...) for DISLIKE_TAG, or a cuisine code for WRONG_CUISINE.
+  reason       FoodDislikeReason?
+  reasonDetail String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // One verdict per (user, dish); also the lookup the feed uses to exclude seen dishes.
+  @@unique([userId, foodId])
+  // "My likes/dislikes" list: filter by user + action, newest first.
+  @@index([userId, action, createdAt])
+  // Correlated subquery in the feed excludes dishes this user has already swiped.
+  @@index([foodId, userId])
+  @@map("food_interactions")
 }

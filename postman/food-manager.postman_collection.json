@@ -35,7 +35,12 @@
     { "key": "userDiets", "value": "[\"VEGETARIAN\", \"VEGAN\"]" },
     { "key": "settingsLanguage", "value": "ru" },
     { "key": "settingsTheme", "value": "DARK" },
-    { "key": "pushNotificationsEnabled", "value": "false" }
+    { "key": "pushNotificationsEnabled", "value": "false" },
+    { "key": "foodId", "value": "" },
+    { "key": "foodId2", "value": "" },
+    { "key": "foodId3", "value": "" },
+    { "key": "feedCursor", "value": "" },
+    { "key": "feedLimit", "value": "3" }
   ],
   "item": [
     {
@@ -859,6 +864,330 @@
             },
             "body": { "mode": "raw", "raw": "{\n  \"language\": \"{{settingsLanguage}}\",\n  \"theme\": \"{{settingsTheme}}\",\n  \"pushNotificationsEnabled\": {{pushNotificationsEnabled}}\n}" },
             "description": "Partial update of the authenticated user's settings — send any non-empty subset of { language, theme, pushNotificationsEnabled } and only those fields change. language is a BCP-47 tag (e.g. 'en', 'ru', 'en-US'); theme is one of LIGHT|DARK|SYSTEM; pushNotificationsEnabled is a boolean. An empty body, an unknown key, or an invalid value returns 400. Edit the settingsLanguage / settingsTheme / pushNotificationsEnabled collection variables to change what's sent. Returns the full updated settings."
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Cuisines",
+      "item": [
+        {
+          "name": "9.1 List Available Cuisines (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('cuisines is an array of enum codes', () => pm.expect(body.cuisines).to.be.an('array'));",
+                  "pm.test('catalog includes the default cuisines', () => pm.expect(body.cuisines).to.include.members(['ITALIAN', 'JAPANESE', 'MEXICAN', 'INDIAN', 'THAI']));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/cuisines", "host": ["{{baseUrl}}"], "path": ["cuisines"] },
+            "description": "Returns the fixed, server-owned cuisine catalog as an array of enum codes (e.g. [\"ITALIAN\", \"JAPANESE\", ...]), ordered by the catalog's sortOrder. The client maps each code to a localized display name. Same pattern as GET /diets. These codes are also what a client sends as reasonDetail for a WRONG_CUISINE dislike (see 10.6)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Food Feed & Swipe",
+      "item": [
+        {
+          "name": "10.0 Seed Sample Foods (Dev helper)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('seeded some dishes', () => pm.expect(body.count).to.be.above(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{serverUrl}}/api/dev/seed-foods", "host": ["{{serverUrl}}"], "path": ["api", "dev", "seed-foods"] },
+            "description": "Dev-only helper (mounted only when NODE_ENV != production, like the keystore helpers). Seeds a fixed set of sample dishes — each with 1..7 images, per-serving nutrition, a cuisine and tag flags — so the feed has data. Idempotent: dishes have fixed UUIDs and are upserted, so re-running refreshes them in place. Run this once before exploring the feed."
+          }
+        },
+        {
+          "name": "10.1 Get Feed — page 1 (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('items is an array', () => pm.expect(body.items).to.be.an('array'));",
+                  "pm.test('page carries a cursor + hasMore', () => { pm.expect(body).to.have.property('nextCursor'); pm.expect(body).to.have.property('hasMore'); });",
+                  "if (body.items.length) {",
+                  "  const f = body.items[0];",
+                  "  pm.test('a dish exposes name/images/nutrition/tags/cuisine', () => {",
+                  "    pm.expect(f).to.have.property('name');",
+                  "    pm.expect(f.images).to.be.an('array');",
+                  "    pm.expect(f).to.have.property('nutrition');",
+                  "    pm.expect(f).to.have.property('cuisine');",
+                  "    ['allergens','dietaryRestrictions','intolerances','features','diets'].forEach((k) => pm.expect(f.tags[k]).to.be.an('array'));",
+                  "  });",
+                  "  pm.collectionVariables.set('foodId', body.items[0].id);",
+                  "  if (body.items[1]) pm.collectionVariables.set('foodId2', body.items[1].id);",
+                  "  if (body.items[2]) pm.collectionVariables.set('foodId3', body.items[2].id);",
+                  "}",
+                  "pm.collectionVariables.set('feedCursor', body.nextCursor || '');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/foods/feed?limit={{feedLimit}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["foods", "feed"],
+              "query": [{ "key": "limit", "value": "{{feedLimit}}" }]
+            },
+            "description": "The Tinder-style recommendation deck: a page of dishes the authenticated user has NOT swiped yet, newest first. Keyset (cursor) paginated — the response is { items, nextCursor, hasMore }. Each dish is fully shaped: { id, name, description, cuisine, images[] (1..7), nutrition { calories, servings, protein, fat, carbs }, tags { allergens[], dietaryRestrictions[], intolerances[], features[], diets[] }, createdAt, updatedAt }. limit is 1..50 (default 10). This test captures the first three dish ids (foodId/foodId2/foodId3) and the nextCursor for the requests below. Already-swiped dishes drop out of later pages automatically, so re-running after swiping returns fewer dishes."
+          }
+        },
+        {
+          "name": "10.2 Get Feed — page 2 via cursor (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('items is an array', () => pm.expect(body.items).to.be.an('array'));",
+                  "pm.collectionVariables.set('feedCursor', body.nextCursor || '');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/foods/feed?limit={{feedLimit}}&cursor={{feedCursor}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["foods", "feed"],
+              "query": [
+                { "key": "limit", "value": "{{feedLimit}}" },
+                { "key": "cursor", "value": "{{feedCursor}}" }
+              ]
+            },
+            "description": "The next page, using the opaque nextCursor captured by 10.1. Passing the cursor returns dishes that sort strictly after the last one seen — no overlap, no gaps, even as the swiped-set grows. A malformed cursor returns 400 INVALID_CURSOR. Run 10.1 first so feedCursor is set (if 10.1's page was the last one, feedCursor is empty and this just returns page 1 again)."
+          }
+        },
+        {
+          "name": "10.3 Get Food Detail (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns the requested dish', () => pm.expect(body.food.id).to.eql(pm.collectionVariables.get('foodId')));",
+                  "pm.test('dish has an images array', () => pm.expect(body.food.images).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/foods/{{foodId}}", "host": ["{{baseUrl}}"], "path": ["foods", "{{foodId}}"] },
+            "description": "Full detail for a single dish (same shape as a feed item). Uses the foodId captured by 10.1. A non-UUID id returns 400; an unknown (but well-formed) id returns 404 FOOD_NOT_FOUND."
+          }
+        },
+        {
+          "name": "10.4 Like Food (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('recorded a LIKE', () => pm.expect(body.interaction.action).to.eql('LIKE'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/foods/{{foodId}}/interactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["foods", "{{foodId}}", "interactions"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"action\": \"LIKE\"\n}" },
+            "description": "Records the swipe verdict on a dish. Body: { action: \"LIKE\" | \"SKIP\" | \"DISLIKE\", reason?, reasonDetail? }. Idempotent per (user, dish) — re-swiping the same dish overwrites the previous verdict (so a SKIP can later become a LIKE). reason/reasonDetail are only allowed on DISLIKE (see 10.6); sending them here returns 400. After this, the liked dish no longer appears in the feed."
+          }
+        },
+        {
+          "name": "10.5 Skip Food (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('recorded a SKIP', () => pm.expect(body.interaction.action).to.eql('SKIP'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/foods/{{foodId2}}/interactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["foods", "{{foodId2}}", "interactions"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"action\": \"SKIP\"\n}" },
+            "description": "Skips a dish (the second one captured by 10.1). A SKIP is a neutral pass — the dish drops out of the feed like a like/dislike does, but carries no positive or negative preference signal."
+          }
+        },
+        {
+          "name": "10.6 Dislike Food — 'Hate it' + reason (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('recorded a DISLIKE', () => pm.expect(body.interaction.action).to.eql('DISLIKE'));",
+                  "pm.test('kept the reason + detail', () => { pm.expect(body.interaction.reason).to.eql('DISLIKE_TAG'); pm.expect(body.interaction.reasonDetail).to.eql('SPICY'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/foods/{{foodId3}}/interactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["foods", "{{foodId3}}", "interactions"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"action\": \"DISLIKE\",\n  \"reason\": \"DISLIKE_TAG\",\n  \"reasonDetail\": \"SPICY\"\n}" },
+            "description": "'Hate it' with a reason (the third dish from 10.1). reason is one of DISLIKE_TAG | WRONG_CUISINE | ALREADY_ATE | ALLERGEN | NOT_IN_MOOD | OTHER. For DISLIKE_TAG send the tag code the user hates in reasonDetail (e.g. \"SPICY\", \"MILK\"); for WRONG_CUISINE send a cuisine code from GET /cuisines (e.g. \"ITALIAN\") — reasonDetail is required for those two and optional otherwise. These negative signals are what the future preference-based recommender learns from."
+          }
+        },
+        {
+          "name": "10.7 List My Interactions (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('items is an array', () => pm.expect(body.items).to.be.an('array'));",
+                  "pm.test('each entry carries the dish + verdict', () => body.items.forEach((i) => { pm.expect(i).to.have.property('action'); pm.expect(i.food).to.have.property('name'); }));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/foods/interactions?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["foods", "interactions"],
+              "query": [{ "key": "limit", "value": "20" }]
+            },
+            "description": "The authenticated user's own swipe history ('my likes / skips / dislikes'), newest first, keyset-paginated like the feed ({ items, nextCursor, hasMore }). Each item is { foodId, action, reason, reasonDetail, createdAt, updatedAt, food } where food is the full dish. Add ?action=LIKE|SKIP|DISLIKE to filter (see 10.8)."
+          }
+        },
+        {
+          "name": "10.8 List My Likes (filtered, protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('every entry is a LIKE', () => body.items.forEach((i) => pm.expect(i.action).to.eql('LIKE')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/foods/interactions?action=LIKE",
+              "host": ["{{baseUrl}}"],
+              "path": ["foods", "interactions"],
+              "query": [{ "key": "action", "value": "LIKE" }]
+            },
+            "description": "The 'liked foods' screen: same list as 10.7 but filtered to LIKE. Swap the action query param for SKIP or DISLIKE to get those lists."
+          }
+        },
+        {
+          "name": "10.9 Undo Swipe / Rewind (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('reports whether a verdict was removed', () => pm.expect(body.removed).to.be.a('boolean'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/foods/{{foodId}}/interactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["foods", "{{foodId}}", "interactions"]
+            },
+            "description": "Undo a swipe (Tinder-style rewind): removes the user's verdict on the dish so it re-enters the feed. Idempotent — returns { removed: true } if a verdict was cleared, { removed: false } if there was nothing to undo (never 404s)."
           }
         }
       ]

@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validateBody } from '../middleware/validate';
 import { signSchema } from '../validation/devSchemas';
+import * as foodService from '../services/foodService';
 
 /**
  * Test-only helpers that stand in for the Android Keystore (keypair generation +
@@ -36,5 +37,15 @@ devRouter.post(
       'base64',
     );
     res.status(200).json({ signature });
+  }),
+);
+
+// Seeds a fixed set of sample dishes so the food feed (GET /api/foods/feed) has
+// something to return in Postman. Idempotent — safe to run repeatedly.
+devRouter.post(
+  '/seed-foods',
+  asyncHandler(async (_req, res) => {
+    const result = await foodService.seedSampleFoods();
+    res.status(200).json(result);
   }),
 );

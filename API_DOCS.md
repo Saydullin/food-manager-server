@@ -150,4 +150,93 @@ fields you send are changed; the rest keep their current value (partial update).
 an unknown field, or an invalid value returns 400.
 → 200 `{ settings }` (the full updated settings)
 
+## Cuisines
+
+Server-owned reference catalog, same shape/contract as **Diets**: a fixed list of machine-readable
+enum codes (e.g. `"ITALIAN"`) the client maps to localized names. Not user-editable; new cuisines
+are added server-side by inserting rows (future admin panel). Also the source of the codes a client
+sends as `reasonDetail` for a `WRONG_CUISINE` dislike (see below).
+
+### GET /cuisines  🔒
+→ 200 `{ cuisines: ["ITALIAN", "JAPANESE", ...] }` — ordered by the catalog's `sortOrder`.
+
+## Food feed & swipe (Tinder-style)
+
+The recommendation deck. A **dish** is returned fully shaped:
+
+```jsonc
+{
+  "id": "uuid",
+  "name": "Spicy Tuna Roll",
+  "description": "…",                 // nullable
+  "cuisine": "JAPANESE",              // nullable; a code from GET /cuisines
+  "images": ["https://…1.jpg", …],    // 1..7, ordered (first = cover); [] if none
+  "nutrition": {                      // nullable
+    "calories": 320, "servings": 1,   // per serving
+    "protein": 24, "fat": 9, "carbs": 38   // grams, КБЖУ; any may be null
+  },
+  "tags": {                           // each an array of UPPER_SNAKE codes
+    "allergens": ["FISH", "SOY", "SESAME"],
+    "dietaryRestrictions": ["PESCATARIAN"],
+    "intolerances": [],
+    "features": ["SPICY", "HIGH_PROTEIN", "LOW_FAT"],
+    "diets": []
+  },
+  "createdAt": "…", "updatedAt": "…"
+}
+```
+
+**Pagination is keyset (cursor), not offset.** The feed subtracts the dishes the user has already
+swiped, and that set grows as they swipe — a fixed offset would skip/repeat rows, so instead every
+list response is:
+
+```jsonc
+{ "items": [ …dishes… ], "nextCursor": "opaque-base64-or-null", "hasMore": true }
+```
+
+To get the next page, pass `nextCursor` back as `?cursor=…`. `nextCursor` is `null` (and `hasMore`
+`false`) on the last page. The cursor is opaque — treat it as a token; a malformed one returns
+`400 INVALID_CURSOR`.
+
+### GET /foods/feed?limit=&cursor=  🔒
+A page of dishes the user has **not swiped yet**, newest first. `limit` is `1`–`50` (default `10`).
+→ 200 `{ items: [dish], nextCursor, hasMore }`
+
+### GET /foods/:foodId  🔒
+Full detail for one dish (same shape as a feed item). Non-UUID id → `400`; unknown id →
+`404 FOOD_NOT_FOUND`.
+→ 200 `{ food }`
+
+### POST /foods/:foodId/interactions  🔒
+Record (or overwrite) the swipe verdict. **Idempotent per (user, dish)** — re-swiping overwrites the
+previous verdict (upsert), so a dish never accumulates rows and a SKIP can later become a LIKE.
+Body: `{ action, reason?, reasonDetail? }`
+
+- `action` — `"LIKE"` | `"SKIP"` | `"DISLIKE"`.
+- `reason` — **only allowed when `action` is `DISLIKE`** ("Hate it → why"); sending it otherwise → `400`.
+  One of `DISLIKE_TAG` | `WRONG_CUISINE` | `ALREADY_ATE` | `ALLERGEN` | `NOT_IN_MOOD` | `OTHER`.
+- `reasonDetail` — the specific code behind the reason: the disliked **tag** for `DISLIKE_TAG`
+  (e.g. `"SPICY"`, `"MILK"`) or a **cuisine** code for `WRONG_CUISINE` (e.g. `"ITALIAN"`).
+  **Required** for those two reasons, optional otherwise.
+
+After a swipe the dish drops out of the feed. Unknown dish → `404 FOOD_NOT_FOUND`.
+→ 200 `{ interaction: { foodId, action, reason, reasonDetail, createdAt, updatedAt } }`
+
+These verdicts — especially the dislike reasons — are the raw signal the future preference-based
+recommender will learn from.
+
+### DELETE /foods/:foodId/interactions  🔒
+Undo a swipe (rewind): removes the verdict so the dish re-enters the feed. Idempotent — never 404s.
+→ 200 `{ removed: true|false }`
+
+### GET /foods/interactions?action=&limit=&cursor=  🔒
+The user's own swipe history ("my likes / skips / dislikes"), newest first, same cursor pagination as
+the feed. Optional `action` filter (`LIKE`|`SKIP`|`DISLIKE`). Each item embeds the full dish.
+→ 200 `{ items: [{ foodId, action, reason, reasonDetail, createdAt, updatedAt, food }], nextCursor, hasMore }`
+
+### POST /api/dev/seed-foods  (dev only, no auth)
+Seeds a fixed set of sample dishes (images + nutrition + cuisine + tags) so the feed is testable.
+Idempotent. Mounted only when `NODE_ENV != production`, like the `/api/dev` keystore helpers.
+→ 200 `{ count }`
+
 🔒 = requires `Authorization: Bearer <accessToken>`

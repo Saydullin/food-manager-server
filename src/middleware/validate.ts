@@ -14,3 +14,10 @@ export const validateQuery =
     req.query = schema.parse(req.query);
     next();
   };
+
+/** Validates + replaces `req.params` with the parsed result of `schema`. */
+export const validateParams =
+  (schema: ZodTypeAny) => (req: Request, _res: Response, next: NextFunction) => {
+    req.params = schema.parse(req.params);
+    next();
+  };
