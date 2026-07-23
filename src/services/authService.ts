@@ -5,7 +5,7 @@ import { parseDevicePublicKey, verifySignature } from '../utils/crypto';
 import { generateRandomToken, generateVerificationCode, hashToken } from '../utils/tokens';
 import { signAccessToken } from '../utils/jwt';
 import { addSeconds, addTtl } from '../utils/ttl';
-import { sendRecoveryEmail, sendVerificationEmail } from './emailService';
+import { sendRecoveryCodeEmail, sendRecoveryEmail, sendVerificationEmail } from './emailService';
 
 const validatePublicKeyOrThrow = (publicKeyBase64: string): void => {
   try {
@@ -294,4 +294,122 @@ export const confirmRecovery = async (input: ConfirmRecoveryInput) => {
 
   const session = await issueSession(record.userId, device.id);
   return { device: { id: device.id, deviceLabel: device.deviceLabel }, ...session };
+};
+
+// ---------------------------------------------------------------------------
+// Login / restore access by username + email (email code)
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolves the account behind a (username, email) pair for the code-based login/restore
+ * flow. Returns the user only when the username exists AND the submitted email matches
+ * the account's VERIFIED on-file address (compared case-insensitively); returns null
+ * otherwise. Callers turn null into the same generic response either way, so we never
+ * reveal which half was wrong.
+ */
+const findRecoverableUser = async (username: string, email: string) => {
+  const user = await prisma.user.findUnique({ where: { username } });
+  if (user?.email && user.emailVerified && user.email.toLowerCase() === email.toLowerCase()) {
+    return user;
+  }
+  return null;
+};
+
+/**
+ * Step 1 of code-based login/restore: if (username, email) names a real account with a
+ * verified email, mint a short numeric code and email it. Always resolves the same way
+ * regardless of whether an account matched (anti-enumeration), and only ever sends to the
+ * account's own verified address — never to the caller-supplied one — so it can't be used
+ * to redirect a code elsewhere.
+ */
+export const requestRecoveryCode = async (username: string, email: string): Promise<void> => {
+  const user = await findRecoverableUser(username, email);
+  if (!user) return;
+
+  const code = generateVerificationCode();
+  await prisma.recoveryToken.create({
+    data: {
+      userId: user.id,
+      codeHash: hashToken(code),
+      codeExpiresAt: addSeconds(env.RECOVERY_CODE_TTL),
+      // This row carries no link token, so its overall expiry just tracks the code.
+      expiresAt: addSeconds(env.RECOVERY_CODE_TTL),
+    },
+  });
+  sendRecoveryCodeEmail(user.email!, code);
+};
+
+export interface ConfirmRecoveryCodeInput {
+  username: string;
+  email: string;
+  code: string;
+  newPublicKey: string;
+  deviceLabel?: string;
+}
+
+/**
+ * Step 2 of code-based login/restore: verify the emailed code for the (username, email)
+ * account, then link the caller's new device public key and issue a session — the same
+ * outcome as {@link confirmRecovery}, but proven by a typed code instead of a link. The
+ * code is single-use, expiring, and attempt-limited (mirrors {@link verifyEmailCode}).
+ */
+export const confirmRecoveryCode = async (input: ConfirmRecoveryCodeInput) => {
+  const invalidCode = () =>
+    AppError.badRequest('Login code is invalid or expired', 'INVALID_RECOVERY_CODE');
+
+  const user = await findRecoverableUser(input.username, input.email);
+  // Generic error whether the account/email didn't match or the code is simply wrong —
+  // don't leak which. (Rate-limited at the route to bound guessing across records.)
+  if (!user) throw invalidCode();
+
+  const record = await prisma.recoveryToken.findFirst({
+    where: { userId: user.id, used: false, codeHash: { not: null } },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (!record || !record.codeHash || !record.codeExpiresAt || record.codeExpiresAt < new Date()) {
+    throw invalidCode();
+  }
+
+  if (record.codeAttempts >= env.RECOVERY_CODE_MAX_ATTEMPTS) {
+    throw AppError.badRequest(
+      'Too many incorrect attempts. Request a new code.',
+      'TOO_MANY_CODE_ATTEMPTS',
+    );
+  }
+
+  if (hashToken(input.code) !== record.codeHash) {
+    await prisma.recoveryToken.update({
+      where: { id: record.id },
+      data: { codeAttempts: { increment: 1 } },
+    });
+    throw invalidCode();
+  }
+
+  validatePublicKeyOrThrow(input.newPublicKey);
+  await assertPublicKeyAvailable(input.newPublicKey);
+
+  const device = await prisma.$transaction(async (tx) => {
+    await tx.recoveryToken.update({ where: { id: record.id }, data: { used: true } });
+    return tx.device.create({
+      data: {
+        userId: user.id,
+        publicKey: input.newPublicKey,
+        deviceLabel: input.deviceLabel ?? null,
+      },
+    });
+  });
+
+  const session = await issueSession(user.id, device.id);
+  return {
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      imageUrl: user.imageUrl,
+    },
+    device: { id: device.id, deviceLabel: device.deviceLabel },
+    ...session,
+  };
 };

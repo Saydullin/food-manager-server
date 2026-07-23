@@ -2,7 +2,12 @@ import { Router } from 'express';
 import * as authController from '../controllers/authController';
 import * as deviceController from '../controllers/deviceController';
 import { requireAuth } from '../middleware/requireAuth';
-import { emailCodeRateLimiter, loginRateLimiter, recoveryRateLimiter } from '../middleware/rateLimit';
+import {
+  emailCodeRateLimiter,
+  loginRateLimiter,
+  recoveryCodeRateLimiter,
+  recoveryRateLimiter,
+} from '../middleware/rateLimit';
 import { validateBody, validateQuery } from '../middleware/validate';
 import {
   challengeSchema,
@@ -11,7 +16,9 @@ import {
   emailVerifyCodeSchema,
   emailVerifyQuerySchema,
   logoutSchema,
+  recoveryConfirmCodeSchema,
   recoveryConfirmSchema,
+  recoveryRequestCodeSchema,
   recoveryRequestSchema,
   refreshSchema,
   registerSchema,
@@ -49,6 +56,22 @@ authRouter.post(
   authController.requestRecovery,
 );
 authRouter.post('/recovery/confirm', validateBody(recoveryConfirmSchema), authController.confirmRecovery);
+
+// Login / restore access by username + email, confirmed with an emailed 6-digit code.
+// request-code shares the recovery rate limiter (email-sending); confirm-code has its own
+// (code-guessing), matching the /email/verify-code split.
+authRouter.post(
+  '/recovery/request-code',
+  recoveryRateLimiter,
+  validateBody(recoveryRequestCodeSchema),
+  authController.requestRecoveryCode,
+);
+authRouter.post(
+  '/recovery/confirm-code',
+  recoveryCodeRateLimiter,
+  validateBody(recoveryConfirmCodeSchema),
+  authController.confirmRecoveryCode,
+);
 
 authRouter.post('/devices/add', requireAuth, validateBody(deviceAddSchema), deviceController.addDevice);
 authRouter.get('/devices', requireAuth, deviceController.listDevices);

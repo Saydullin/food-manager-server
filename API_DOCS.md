@@ -66,6 +66,20 @@ whether the account exists / has a verified email (anti-enumeration).
 ### POST /auth/recovery/confirm
 Body: `{ recoveryToken, newPublicKey, deviceLabel? }` → 200 `{ device, accessToken, refreshToken }`
 
+### POST /auth/recovery/request-code
+Login / restore access by **username + email** (the code-based counterpart to `/recovery/request`,
+for a login screen where the user types both). Body: `{ username, email }` → 200 generic `{ message }`
+always (anti-enumeration). Only mails a 6-digit code when the username exists **and** the submitted
+email matches the account's **verified** on-file address (case-insensitive) — the code is never sent
+to an arbitrary address. Code expires after `RECOVERY_CODE_TTL` seconds (default 600 = 10 min).
+
+### POST /auth/recovery/confirm-code
+Body: `{ username, email, code, newPublicKey, deviceLabel? }` → 200
+`{ user, device, accessToken, refreshToken }`. Verifies the emailed code, registers the new device
+public key, and issues a session (the client is now logged in on this device). The code is single-use
+and invalidated after `RECOVERY_CODE_MAX_ATTEMPTS` wrong guesses (default 5); on failure the error is
+generic (`INVALID_RECOVERY_CODE`) so it never reveals whether the account or the code was wrong.
+
 ### POST /auth/devices/add  🔒
 Body: `{ publicKey, deviceLabel? }` → 201 `{ id, deviceLabel, createdAt }`
 

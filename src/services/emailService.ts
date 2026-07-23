@@ -20,3 +20,14 @@ export const sendRecoveryEmail = (to: string, token: string): void => {
   const link = `${env.APP_BASE_URL}/api/auth/recovery/confirm?token=${token}`;
   logEmail(to, 'Account recovery request', link);
 };
+
+/**
+ * The code-based counterpart to {@link sendRecoveryEmail}: delivers a short numeric
+ * code the user types into the login screen to restore access by username + email.
+ * Code-only email (no link), so it doesn't go through {@link logEmail}.
+ */
+export const sendRecoveryCodeEmail = (to: string, code: string): void => {
+  console.log(
+    `\n[email] To: ${to}\n[email] Subject: Your account login / recovery code\n[email] Code: ${code}\n`,
+  );
+};

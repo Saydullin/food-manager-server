@@ -21,12 +21,18 @@
     { "key": "emailVerificationToken", "value": "PASTE_FROM_SERVER_CONSOLE" },
     { "key": "emailVerificationCode", "value": "PASTE_FROM_SERVER_CONSOLE" },
     { "key": "recoveryToken", "value": "PASTE_FROM_SERVER_CONSOLE" },
+    { "key": "recoveryCode", "value": "PASTE_FROM_SERVER_CONSOLE" },
+    { "key": "codeLoginPublicKey", "value": "" },
+    { "key": "codeLoginPrivateKey", "value": "" },
     { "key": "device2PublicKey", "value": "" },
     { "key": "device2PrivateKey", "value": "" },
     { "key": "deviceId2", "value": "" },
     { "key": "recoveryDevicePublicKey", "value": "" },
     { "key": "recoveryDevicePrivateKey", "value": "" },
-    { "key": "profileImageUrl", "value": "https://example.com/avatars/me.png" }
+    { "key": "profileImageUrl", "value": "https://example.com/avatars/me.png" },
+    { "key": "foodPreferences", "value": "[\"spicy\", \"italian\"]" },
+    { "key": "foodExceptions", "value": "[\"cilantro\", \"mushrooms\"]" },
+    { "key": "userDiets", "value": "[\"VEGETARIAN\", \"VEGAN\"]" }
   ],
   "item": [
     {
@@ -482,6 +488,79 @@
             },
             "description": "Requires recoveryToken to be set manually from the server console log (see 4.1)."
           }
+        },
+        {
+          "name": "4.4 Request Login Code (username + email)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/auth/recovery/request-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "recovery", "request-code"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{username}}_updated@example.com\"\n}"
+            },
+            "description": "Login / restore access by username + email — the code-based counterpart to 4.1. Only actually sends a code when that username has a VERIFIED email on file that matches the one sent (run 2.1 + 2.2/2.3 first so {{username}}_updated@example.com is verified). The response is always the same generic message either way (anti-enumeration). The code is only ever mailed to the account's on-file address, never to an arbitrary one. Check the running server's console for '[email] Code: 123456' and paste it into the recoveryCode collection variable for 4.6."
+          }
+        },
+        {
+          "name": "4.5 Generate Device Keypair (Code-Login Device)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('codeLoginPublicKey', body.publicKey);",
+                  "pm.collectionVariables.set('codeLoginPrivateKey', body.privateKey);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{serverUrl}}/api/dev/keypair", "host": ["{{serverUrl}}"], "path": ["api", "dev", "keypair"] },
+            "description": "A fresh keypair for the code-login device. confirm-code (4.6) registers this public key as a new device, so it must not already be registered — don't reuse the recovery device from 4.2."
+          }
+        },
+        {
+          "name": "4.6 Confirm Login Code (get session)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('accessToken', body.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', body.refreshToken);",
+                  "pm.collectionVariables.set('deviceId', body.device.id);",
+                  "pm.collectionVariables.set('userId', body.user.id);",
+                  "pm.test('returns a session', () => pm.expect(body.accessToken).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/auth/recovery/confirm-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "recovery", "confirm-code"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{username}}_updated@example.com\",\n  \"code\": \"{{recoveryCode}}\",\n  \"newPublicKey\": \"{{codeLoginPublicKey}}\",\n  \"deviceLabel\": \"Code-Login Device\"\n}"
+            },
+            "description": "Completes login / restore access by username + email: verifies the emailed code (set recoveryCode from the console — see 4.4), registers the new device public key from 4.5, and returns { user, device, accessToken, refreshToken } — the client is now logged in on this device. The code is single-use, expires after RECOVERY_CODE_TTL seconds (default 10 min), and locks out after RECOVERY_CODE_MAX_ATTEMPTS wrong guesses (default 5); request a fresh one via 4.4 if that happens."
+          }
         }
       ]
     },
@@ -499,7 +578,10 @@
                   "pm.test('status is 200', () => pm.response.to.have.status(200));",
                   "const body = pm.response.json();",
                   "pm.test('returns the user profile', () => pm.expect(body.user).to.have.property('id'));",
-                  "pm.test('profile exposes imageUrl', () => pm.expect(body.user).to.have.property('imageUrl'));"
+                  "pm.test('profile exposes imageUrl', () => pm.expect(body.user).to.have.property('imageUrl'));",
+                  "pm.test('profile exposes foodPreferences array', () => pm.expect(body.user.foodPreferences).to.be.an('array'));",
+                  "pm.test('profile exposes foodExceptions array', () => pm.expect(body.user.foodExceptions).to.be.an('array'));",
+                  "pm.test('profile exposes diets array', () => pm.expect(body.user.diets).to.be.an('array'));"
                 ]
               }
             }
@@ -557,6 +639,127 @@
             "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
             "url": { "raw": "{{baseUrl}}/users/me/image", "host": ["{{baseUrl}}"], "path": ["users", "me", "image"] },
             "description": "Removes the profile picture (sets imageUrl back to null). Returns the full updated profile."
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Food Preferences",
+      "item": [
+        {
+          "name": "6.1 Set Food Preferences (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "const expected = JSON.parse(pm.collectionVariables.get('foodPreferences')).map((s) => s.trim().toLowerCase());",
+                  "pm.test('preferences were saved', () => pm.expect(body.user.foodPreferences).to.have.members(expected));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/food-preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me", "food-preferences"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"preferences\": {{foodPreferences}}\n}" },
+            "description": "Replaces the authenticated user's food preferences with the given list of free-form strings (e.g. [\"spicy\", \"italian\"]). Idempotent — the whole list is replaced every call, and an empty array [] clears it. Entries are trimmed, lowercased, de-duplicated, capped at 100 chars each and 100 entries total. Edit the 'foodPreferences' collection variable to change what's sent. Returns the full updated profile, whose foodPreferences array is sorted alphabetically."
+          }
+        },
+        {
+          "name": "6.2 Set Food Exceptions (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "const expected = JSON.parse(pm.collectionVariables.get('foodExceptions')).map((s) => s.trim().toLowerCase());",
+                  "pm.test('exceptions were saved', () => pm.expect(body.user.foodExceptions).to.have.members(expected));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/food-exceptions",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me", "food-exceptions"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"exceptions\": {{foodExceptions}}\n}" },
+            "description": "Replaces the authenticated user's food exceptions — things they dislike / want avoided — with the given list of free-form strings (e.g. [\"cilantro\", \"mushrooms\"]). Same replace-in-full, idempotent semantics and validation as 6.1. Edit the 'foodExceptions' collection variable to change what's sent. Returns the full updated profile, whose foodExceptions array is sorted alphabetically."
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Diets",
+      "item": [
+        {
+          "name": "7.1 List Available Diets (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('diets is an array of enum codes', () => pm.expect(body.diets).to.be.an('array'));",
+                  "pm.test('catalog includes the default diets', () => pm.expect(body.diets).to.include.members(['VEGETARIAN', 'VEGAN', 'HALAL', 'LACTOSE_FREE', 'GLUTEN_FREE']));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/diets", "host": ["{{baseUrl}}"], "path": ["diets"] },
+            "description": "Returns the fixed, server-owned diet catalog as an array of enum codes (e.g. [\"VEGETARIAN\", \"VEGAN\", ...]), ordered by the catalog's sortOrder. The client maps each code to a localized display name. This list is not user-editable; new diets are added server-side (future admin panel)."
+          }
+        },
+        {
+          "name": "7.2 Set My Diets (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "const expected = JSON.parse(pm.collectionVariables.get('userDiets')).map((s) => s.trim().toUpperCase());",
+                  "pm.test('selected diets were saved', () => pm.expect(body.user.diets).to.have.members(expected));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/diets",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me", "diets"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"diets\": {{userDiets}}\n}" },
+            "description": "Replaces the authenticated user's selected diets with the given list of enum codes from the catalog (7.1) — e.g. [\"VEGETARIAN\", \"VEGAN\"]. Codes are upper-cased and de-duplicated; every code must exist in the catalog (an unknown code returns 400 UNKNOWN_DIET). Idempotent — the whole selection is replaced each call, and an empty array [] clears it. Edit the 'userDiets' collection variable to change what's sent. Returns the full updated profile, whose diets array is ordered like the catalog."
           }
         }
       ]

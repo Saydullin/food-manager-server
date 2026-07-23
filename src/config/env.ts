@@ -33,6 +33,11 @@ const envSchema = z.object({
   // Failed-attempt limit before a code is rejected outright (6 digits = only 1e6 possibilities).
   EMAIL_CODE_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
 
+  // Recovery via email code (login / restore access by username + email). Short-lived
+  // like the email-verification code, with the same brute-force attempt cap.
+  RECOVERY_CODE_TTL: z.coerce.number().int().positive().default(600),
+  RECOVERY_CODE_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
+
   // SMTP — optional for now (links are console-logged until real email is wired up).
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().positive().optional(),

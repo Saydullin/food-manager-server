@@ -9,6 +9,7 @@ const username = z
 const publicKey = z.string().min(1, 'publicKey is required');
 const deviceLabel = z.string().max(100).optional();
 const email = z.string().email();
+const code = z.string().regex(/^\d{6}$/, 'code must be a 6-digit number');
 
 export const registerSchema = z.object({
   username,
@@ -48,7 +49,7 @@ export const emailVerifyQuerySchema = z.object({
 });
 
 export const emailVerifyCodeSchema = z.object({
-  code: z.string().regex(/^\d{6}$/, 'code must be a 6-digit number'),
+  code,
 });
 
 export const recoveryRequestSchema = z
@@ -62,6 +63,23 @@ export const recoveryRequestSchema = z
 
 export const recoveryConfirmSchema = z.object({
   recoveryToken: z.string().min(1),
+  newPublicKey: publicKey,
+  deviceLabel,
+});
+
+// Login / restore access by username + email, confirmed with an emailed 6-digit code.
+// Both username and email are required (and must match a verified account) — unlike
+// /recovery/request which accepts either — since this backs a login screen where the
+// user types both, and the code is only ever sent to the account's on-file address.
+export const recoveryRequestCodeSchema = z.object({
+  username,
+  email,
+});
+
+export const recoveryConfirmCodeSchema = z.object({
+  username,
+  email,
+  code,
   newPublicKey: publicKey,
   deviceLabel,
 });

@@ -33,3 +33,16 @@ export const emailCodeRateLimiter = rateLimit({
   legacyHeaders: false,
   handler: jsonRateLimitHandler('Too many attempts. Please try again shortly.'),
 });
+
+/**
+ * Applied to /recovery/confirm-code: same rationale as emailCodeRateLimiter, but for the
+ * login/restore-by-code path — throttles code guessing across records (an unauthenticated
+ * endpoint, so this per-IP cap is the outer bound on top of the per-record attempt counter).
+ */
+export const recoveryCodeRateLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: jsonRateLimitHandler('Too many attempts. Please try again shortly.'),
+});

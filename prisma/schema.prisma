@@ -30,8 +30,78 @@ model User {
   refreshTokens           RefreshToken[]
   recoveryTokens          RecoveryToken[]
   emailVerificationTokens EmailVerificationToken[]
+  foodPreferences         UserFoodPreference[]
+  foodExceptions          UserFoodException[]
+  diets                   UserDiet[]
 
   @@map("users")
+}
+
+/// A single free-form food preference the user filled in (e.g. "spicy", "italian").
+/// One row per (user, value); the full preference list is these rows for a user.
+/// Values are stored trimmed + lowercased so the unique constraint dedupes
+/// case-insensitively ("Spicy" and "spicy" collapse to one row).
+model UserFoodPreference {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  value     String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, value])
+  @@index([userId])
+  @@map("user_food_preferences")
+}
+
+/// A single free-form food exception the user dislikes / wants avoided
+/// (e.g. "cilantro", "mushrooms"). Same shape and normalization rules as
+/// UserFoodPreference — just the opposite intent.
+model UserFoodException {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  value     String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, value])
+  @@index([userId])
+  @@map("user_food_exceptions")
+}
+
+/// The fixed, server-owned catalog of selectable diets. Unlike food preferences,
+/// this list is NOT user-authored — it is the source of truth for the valid diet
+/// codes a client may send. `code` is a stable machine-readable enum (e.g.
+/// "VEGETARIAN"); the client maps it to a localized display name. Seeded with a
+/// default set; new diets can be added later (e.g. from an admin panel) by simply
+/// inserting rows — no enum change or code deploy required.
+/// NB: distinct from `FoodDiets`, which is per-dish diet-compliance flags.
+model Diet {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique
+  // Presentation order for the catalog; admin-controllable, ties broken by code.
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users UserDiet[]
+
+  @@map("diets")
+}
+
+/// Join table: the diets a user has selected. References both the users table and
+/// the diet catalog, so a selection can never point at a non-existent diet, and a
+/// user has at most one row per diet.
+model UserDiet {
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dietId    String   @db.Uuid
+  diet      Diet     @relation(fields: [dietId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, dietId])
+  @@index([userId])
+  @@index([dietId])
+  @@map("user_diets")
 }
 
 /// A registered device, holding the public half of the device keypair.
@@ -85,16 +155,28 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-/// Single-use, email-delivered token that lets a user link a NEW device public key
+/// Single-use, email-delivered proof that lets a user link a NEW device public key
 /// to their existing account after losing their old device. Requires a verified email.
+/// Carries two independent proofs, either of which authorizes the same recovery:
+///  - a long opaque LINK token (`tokenHash`), used by /recovery/request + /recovery/confirm; and
+///  - a short numeric CODE (`codeHash`), used by /recovery/request-code + /recovery/confirm-code,
+///    which backs "log in / restore access by username + email" on a fresh device.
+/// A given row uses exactly one of the two (the other stays null), so `tokenHash` is nullable.
 model RecoveryToken {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @db.Uuid
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash String   @unique
-  expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @db.Uuid
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Link-token path. Nullable because code-only recovery rows carry no link; Postgres
+  // treats multiple NULLs as distinct on a UNIQUE column, so this stays @unique.
+  tokenHash     String?   @unique
+  expiresAt     DateTime
+  // Short numeric code path (email-code login / restore access). Hashed at rest like tokenHash.
+  codeHash      String?
+  codeExpiresAt DateTime?
+  // Failed-attempt counter — a 6-digit code has a tiny keyspace, so this bounds guessing.
+  codeAttempts  Int       @default(0)
+  used          Boolean   @default(false)
+  createdAt     DateTime  @default(now())
 
   @@index([userId])
   @@map("recovery_tokens")

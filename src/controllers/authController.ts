@@ -59,3 +59,15 @@ export const confirmRecovery = asyncHandler(async (req: Request, res: Response) 
   const result = await authService.confirmRecovery(req.body);
   res.status(200).json(result);
 });
+
+export const requestRecoveryCode = asyncHandler(async (req: Request, res: Response) => {
+  await authService.requestRecoveryCode(req.body.username, req.body.email);
+  res.status(200).json({
+    message: 'If an account matching that username and email exists, a login code has been sent.',
+  });
+});
+
+export const confirmRecoveryCode = asyncHandler(async (req: Request, res: Response) => {
+  const result = await authService.confirmRecoveryCode(req.body);
+  res.status(200).json(result);
+});
