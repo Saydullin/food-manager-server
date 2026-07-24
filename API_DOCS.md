@@ -12,9 +12,11 @@ Devices hold an asymmetric keypair (Ed25519 or RSA) generated in the Android Key
 **public key** (base64, SPKI/DER) is ever sent to the server. To log in, the server hands the
 device a random nonce (`/challenge`), the device signs it with its private key, and the server
 verifies that signature against the stored public key (`/verify`). No passwords ever exist.
-Email is **entirely optional** and used only for account recovery if a device is lost — skipping
-it costs nothing except recovery; the Android app should warn the user about this tradeoff at
-registration time.
+Email is **entirely optional** and used only as a login fallback if the device's challenge/verify
+handshake doesn't work (lost/reset device, new install, etc.) — skipping it costs nothing except
+that fallback; the Android app should warn the user about this tradeoff at registration time.
+The client should attempt `/challenge` + `/verify` first, and only fall back to the email+code
+flow (`/recovery/request-code` + `/recovery/confirm-code` below) if that fails.
 
 Registration logs the new device in immediately (returns tokens directly) rather than requiring a
 challenge round-trip on the very first login — see the comment in `src/services/authService.ts`
@@ -67,18 +69,21 @@ whether the account exists / has a verified email (anti-enumeration).
 Body: `{ recoveryToken, newPublicKey, deviceLabel? }` → 200 `{ device, accessToken, refreshToken }`
 
 ### POST /auth/recovery/request-code
-Login / restore access by **username + email** (the code-based counterpart to `/recovery/request`,
-for a login screen where the user types both). Body: `{ username, email }` → 200 generic `{ message }`
-always (anti-enumeration). Only mails a 6-digit code when the username exists **and** the submitted
-email matches the account's **verified** on-file address (case-insensitive) — the code is never sent
-to an arbitrary address. Code expires after `RECOVERY_CODE_TTL` seconds (default 600 = 10 min).
+Login by **username + email**, the fallback path when `/challenge` + `/verify` doesn't work (device
+lost/reset, fresh install, etc.). Body: `{ username, email }` → 200 generic `{ message }` always
+(anti-enumeration — same response whether or not the account/email matched). Only mails a 6-digit
+code when the username exists **and** the submitted email matches the account's **verified**
+on-file address (case-insensitive); a mismatched email never receives a code and never lets the
+client in. Code expires after `RECOVERY_CODE_TTL` seconds (default 600 = 10 min).
 
 ### POST /auth/recovery/confirm-code
 Body: `{ username, email, code, newPublicKey, deviceLabel? }` → 200
 `{ user, device, accessToken, refreshToken }`. Verifies the emailed code, registers the new device
 public key, and issues a session (the client is now logged in on this device). The code is single-use
-and invalidated after `RECOVERY_CODE_MAX_ATTEMPTS` wrong guesses (default 5); on failure the error is
-generic (`INVALID_RECOVERY_CODE`) so it never reveals whether the account or the code was wrong.
+and invalidated after `RECOVERY_CODE_MAX_ATTEMPTS` wrong guesses (default 5); if the username/email
+don't match a verified account, or the code is wrong/expired/exhausted, the request is rejected with
+`400 INVALID_RECOVERY_CODE` and **no session is issued** — the error is generic so it never reveals
+whether the account or the code was wrong.
 
 ### POST /auth/devices/add  🔒
 Body: `{ publicKey, deviceLabel? }` → 201 `{ id, deviceLabel, createdAt }`

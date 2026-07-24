@@ -437,7 +437,7 @@
       ]
     },
     {
-      "name": "4. Recovery",
+      "name": "4. Recovery & Email Login",
       "item": [
         {
           "name": "4.1 Request Recovery",
@@ -512,7 +512,7 @@
               "mode": "raw",
               "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{username}}_updated@example.com\"\n}"
             },
-            "description": "Login / restore access by username + email — the code-based counterpart to 4.1. Only actually sends a code when that username has a VERIFIED email on file that matches the one sent (run 2.1 + 2.2/2.3 first so {{username}}_updated@example.com is verified). The response is always the same generic message either way (anti-enumeration). The code is only ever mailed to the account's on-file address, never to an arbitrary one. Check the running server's console for '[email] Code: 123456' and paste it into the recoveryCode collection variable for 4.6."
+            "description": "Login by username + email — the fallback path a client should only try after /challenge + /verify (1.3-1.5) fails (lost/reset device, fresh install, etc.). Only actually sends a code when that username has a VERIFIED email on file that matches the one sent (run 2.1 + 2.2/2.3 first so {{username}}_updated@example.com is verified). The response is always the same generic message either way (anti-enumeration). The code is only ever mailed to the account's on-file address, never to an arbitrary one. Check the running server's console for '[email] Code: 123456' and paste it into the recoveryCode collection variable for 4.6."
           }
         },
         {
@@ -568,7 +568,40 @@
               "mode": "raw",
               "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"{{username}}_updated@example.com\",\n  \"code\": \"{{recoveryCode}}\",\n  \"newPublicKey\": \"{{codeLoginPublicKey}}\",\n  \"deviceLabel\": \"Code-Login Device\"\n}"
             },
-            "description": "Completes login / restore access by username + email: verifies the emailed code (set recoveryCode from the console — see 4.4), registers the new device public key from 4.5, and returns { user, device, accessToken, refreshToken } — the client is now logged in on this device. The code is single-use, expires after RECOVERY_CODE_TTL seconds (default 10 min), and locks out after RECOVERY_CODE_MAX_ATTEMPTS wrong guesses (default 5); request a fresh one via 4.4 if that happens."
+            "description": "Completes login by username + email: verifies the emailed code (set recoveryCode from the console — see 4.4), registers the new device public key from 4.5, and returns { user, device, accessToken, refreshToken } — the client is now logged in on this device. The code is single-use, expires after RECOVERY_CODE_TTL seconds (default 10 min), and locks out after RECOVERY_CODE_MAX_ATTEMPTS wrong guesses (default 5); request a fresh one via 4.4 if that happens."
+          }
+        },
+        {
+          "name": "4.7 Confirm Login Code with Wrong Email (expect 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('generic invalid-code error, no session issued', () => {",
+                  "  pm.expect(body.error.code).to.eql('INVALID_RECOVERY_CODE');",
+                  "  pm.expect(body).to.not.have.property('accessToken');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/auth/recovery/confirm-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "recovery", "confirm-code"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"email\": \"someone-else@example.com\",\n  \"code\": \"{{recoveryCode}}\",\n  \"newPublicKey\": \"{{codeLoginPublicKey}}\",\n  \"deviceLabel\": \"Attacker Device\"\n}"
+            },
+            "description": "Negative test: same username + correct code as 4.6, but an email that does NOT match the account's verified on-file address. Must be rejected with 400 INVALID_RECOVERY_CODE and no session issued — a mismatched email must never let the client in. Run 4.4 again first to get a fresh, unused code if 4.6 already consumed it."
           }
         }
       ]
