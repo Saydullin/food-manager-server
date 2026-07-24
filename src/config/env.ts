@@ -38,12 +38,17 @@ const envSchema = z.object({
   RECOVERY_CODE_TTL: z.coerce.number().int().positive().default(600),
   RECOVERY_CODE_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
 
-  // SMTP — optional for now (links are console-logged until real email is wired up).
+  // SMTP — optional. When SMTP_HOST is unset, emails are console-logged instead of sent
+  // (handy for local dev without real credentials).
   SMTP_HOST: z.string().optional(),
-  SMTP_PORT: z.coerce.number().int().positive().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_SECURE: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true'),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
-  SMTP_FROM: z.string().optional(),
+  SMTP_FROM: z.string().default('Food Manager <no-reply@example.com>'),
 });
 
 const parsed = envSchema.safeParse(process.env);
