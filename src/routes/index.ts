@@ -6,6 +6,7 @@ import { userRouter } from './userRoutes';
 import { dietRouter } from './dietRoutes';
 import { cuisineRouter } from './cuisineRoutes';
 import { foodRouter } from './foodRoutes';
+import { uploadRouter } from './uploadRoutes';
 
 export const apiRouter = Router();
 
@@ -14,6 +15,7 @@ apiRouter.use('/users', userRouter);
 apiRouter.use('/diets', dietRouter);
 apiRouter.use('/cuisines', cuisineRouter);
 apiRouter.use('/foods', foodRouter);
+apiRouter.use('/uploads', uploadRouter);
 
 if (env.NODE_ENV !== 'production') {
   apiRouter.use('/dev', devRouter);

@@ -17,6 +17,11 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default('*'),
   APP_BASE_URL: z.string().url().default('http://localhost:3000'),
 
+  // Local disk directory (relative to the process cwd) where uploaded files are
+  // stored and from which they're served back at `${APP_BASE_URL}/uploads/...`.
+  UPLOAD_DIR: z.string().default('uploads'),
+  UPLOAD_MAX_FILE_SIZE_MB: z.coerce.number().int().positive().default(5),
+
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 
   JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 chars'),

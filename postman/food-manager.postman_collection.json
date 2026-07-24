@@ -30,6 +30,7 @@
     { "key": "recoveryDevicePublicKey", "value": "" },
     { "key": "recoveryDevicePrivateKey", "value": "" },
     { "key": "profileImageUrl", "value": "https://example.com/avatars/me.png" },
+    { "key": "uploadedImageUrl", "value": "" },
     { "key": "foodPreferences", "value": "[\"spicy\", \"italian\"]" },
     { "key": "foodExceptions", "value": "[\"cilantro\", \"mushrooms\"]" },
     { "key": "userDiets", "value": "[\"VEGETARIAN\", \"VEGAN\"]" },
@@ -1188,6 +1189,40 @@
               "path": ["foods", "{{foodId}}", "interactions"]
             },
             "description": "Undo a swipe (Tinder-style rewind): removes the user's verdict on the dish so it re-enters the feed. Idempotent — returns { removed: true } if a verdict was cleared, { removed: false } if there was nothing to undo (never 404s)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Uploads",
+      "item": [
+        {
+          "name": "11.1 Upload Image (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns an http(s) imageUrl', () => pm.expect(body.imageUrl).to.match(/^https?:\\/\\//));",
+                  "pm.collectionVariables.set('uploadedImageUrl', body.imageUrl);",
+                  "pm.collectionVariables.set('profileImageUrl', body.imageUrl);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/uploads/image", "host": ["{{baseUrl}}"], "path": ["uploads", "image"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "image", "type": "file", "src": [] }]
+            },
+            "description": "Uploads a single image file (multipart field 'image': jpeg/png/webp/gif, max UPLOAD_MAX_FILE_SIZE_MB — 5MB by default) to local disk storage and returns its public URL as { imageUrl }. Select a file for the 'image' form-data field before sending. The client then sets that URL on whichever resource references it, e.g. PUT /users/me/image (5.2) — this request also copies the returned URL into the profileImageUrl collection variable so 5.2 can be run immediately after with the real uploaded file. An unsupported MIME type returns 400 UNSUPPORTED_IMAGE_TYPE, an oversized file returns 400 UPLOAD_LIMIT_FILE_SIZE, and a missing file returns 400 MISSING_FILE."
           }
         }
       ]
