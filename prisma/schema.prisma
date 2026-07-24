@@ -33,6 +33,11 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  // Moderation: an admin-suspended account. Does not revoke existing sessions/
+  // tokens on its own — that would be a separate follow-up if ever needed.
+  isBanned Boolean   @default(false)
+  bannedAt DateTime?
+
   devices                 Device[]
   challenges              Challenge[]
   refreshTokens           RefreshToken[]
@@ -43,8 +48,27 @@ model User {
   diets                   UserDiet[]
   settings                UserSettings?
   foodInteractions        FoodInteraction[]
+  complaintsFiled         Complaint[]              @relation("ComplaintReporter")
+  complaintsAgainst       Complaint[]              @relation("ComplaintTargetUser")
 
   @@map("users")
+}
+
+/// An admin-panel account (email + password login), entirely separate from the
+/// device-key auth used by the mobile app's `User` model — different threat model
+/// (browser session vs. mobile passkey), so it gets its own table, secret and
+/// middleware rather than reusing User + a role flag.
+model AdminUser {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  resolvedComplaints Complaint[]
+
+  @@map("admin_users")
 }
 
 /// A single free-form food preference the user filled in (e.g. "spicy", "italian").
@@ -280,6 +304,7 @@ model Food {
   nutrition           FoodNutrition?
   images              FoodImage[]
   interactions        FoodInteraction[]
+  complaints          Complaint[]
 
   // The feed pages by (createdAt, id) and excludes already-swiped dishes; this
   // composite index keeps that ordered scan efficient.
@@ -480,4 +505,52 @@ model FoodInteraction {
   // Correlated subquery in the feed excludes dishes this user has already swiped.
   @@index([foodId, userId])
   @@map("food_interactions")
+}
+
+// ---------------------------------------------------------------------------
+// Moderation
+// ---------------------------------------------------------------------------
+
+/// What kind of thing a complaint targets. Determines which of
+/// `targetUserId`/`targetFoodId` on Complaint is populated.
+enum ComplaintTargetType {
+  USER
+  FOOD
+}
+
+enum ComplaintStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+/// A user-filed report against another user or a dish, moderated by an admin.
+/// Exactly one of `targetUserId`/`targetFoodId` is set, matching `targetType` —
+/// enforced in the service layer (same style as FoodInteraction's reason/
+/// reasonDetail pairing), not a DB constraint, since Prisma has no native
+/// polymorphic-FK / exactly-one-of-N-columns check.
+model Complaint {
+  id         String              @id @default(uuid()) @db.Uuid
+  reporterId String              @db.Uuid
+  reporter   User                @relation("ComplaintReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType ComplaintTargetType
+
+  targetUserId String? @db.Uuid
+  targetUser   User?   @relation("ComplaintTargetUser", fields: [targetUserId], references: [id], onDelete: Cascade)
+  targetFoodId String? @db.Uuid
+  targetFood   Food?   @relation(fields: [targetFoodId], references: [id], onDelete: Cascade)
+
+  reason String
+  status ComplaintStatus @default(OPEN)
+
+  resolvedByAdminId String?    @db.Uuid
+  resolvedByAdmin   AdminUser? @relation(fields: [resolvedByAdminId], references: [id], onDelete: SetNull)
+  resolvedAt        DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([targetUserId])
+  @@index([targetFoodId])
+  @@map("complaints")
 }

@@ -29,6 +29,12 @@ const envSchema = z.object({
   ACCESS_TOKEN_TTL: z.string().default('15m'),
   REFRESH_TOKEN_TTL: z.string().default('30d'),
 
+  // Admin panel auth. Deliberately a separate secret from JWT_SECRET so an admin
+  // access token can never be replayed against the mobile-app's user-auth routes
+  // (or vice versa) even if one secret ever leaked.
+  ADMIN_JWT_SECRET: z.string().min(16, 'ADMIN_JWT_SECRET must be at least 16 chars'),
+  ADMIN_ACCESS_TOKEN_TTL: z.string().default('12h'),
+
   // Timing windows, in SECONDS.
   CHALLENGE_TTL: z.coerce.number().int().positive().default(120),
   RECOVERY_TOKEN_TTL: z.coerce.number().int().positive().default(1800),

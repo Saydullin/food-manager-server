@@ -64,8 +64,9 @@ export interface InteractionWithFoodView extends InteractionView {
 // Shaping helpers
 // ---------------------------------------------------------------------------
 
-// Everything shapeFood needs in one include, reused by every read path.
-const foodInclude = {
+// Everything shapeFood needs in one include, reused by every read path. Exported
+// for the admin food service, which shapes the same rows for CRUD responses.
+export const foodInclude = {
   cuisine: { select: { code: true } },
   images: { select: { url: true }, orderBy: { position: 'asc' } },
   nutrition: true,
@@ -90,7 +91,7 @@ const trueTags = (row: Record<string, unknown> | null): string[] =>
         .map(([key]) => toTagCode(key))
     : [];
 
-const shapeFood = (row: FoodRow): FoodView => ({
+export const shapeFood = (row: FoodRow): FoodView => ({
   id: row.id,
   name: row.name,
   description: row.description,
@@ -278,8 +279,9 @@ export const listInteractions = async (
 };
 
 // Trims a fetched `limit + 1` slice into a page: drops the probe row, computes
-// hasMore, and builds nextCursor from the last kept row's keyset.
-const toPage = <TRow, TOut>(
+// hasMore, and builds nextCursor from the last kept row's keyset. Exported for
+// the admin food list, which pages the same way.
+export const toPage = <TRow, TOut>(
   rows: TRow[],
   limit: number,
   keyOf: (row: TRow) => { createdAt: Date; id: string },
@@ -423,14 +425,19 @@ const SAMPLE_FOODS: SeedFood[] = [
 ];
 
 // Builds the boolean-column object for a tag table from the list of true codes.
-const flagsFrom = (keys: string[], on: string[] | undefined): Record<string, boolean> =>
+// Exported so the admin food service builds the same shape from request tag codes.
+export const flagsFrom = (keys: string[], on: string[] | undefined): Record<string, boolean> =>
   Object.fromEntries(keys.map((k) => [k, (on ?? []).includes(k)]));
 
-const ALLERGEN_KEYS = ['milk', 'eggs', 'peanuts', 'treeNuts', 'soy', 'wheat', 'gluten', 'fish', 'shellfish', 'sesame', 'mustard', 'celery', 'lupin', 'molluscs', 'sulfites'];
-const RESTRICTION_KEYS = ['vegetarian', 'vegan', 'pescatarian', 'halal', 'kosher'];
-const INTOLERANCE_KEYS = ['lactose', 'gluten', 'fructose', 'histamine'];
-const FEATURE_KEYS = ['spicy', 'verySpicy', 'lowCarb', 'highProtein', 'lowFat', 'lowCalorie', 'highFiber', 'highSugar', 'highSodium', 'sweet', 'sugarFree'];
-const DIET_KEYS = ['keto', 'paleo', 'mediterranean', 'diabeticFriendly', 'lowGi'];
+// The valid camelCase column keys for each tag table — the source of truth for
+// which codes a client may send (converted to UPPER_SNAKE by toTagCode for reads).
+// Exported for the admin food validation schema and seeding, so both stay in sync
+// with the actual Prisma columns without redeclaring the lists.
+export const ALLERGEN_KEYS = ['milk', 'eggs', 'peanuts', 'treeNuts', 'soy', 'wheat', 'gluten', 'fish', 'shellfish', 'sesame', 'mustard', 'celery', 'lupin', 'molluscs', 'sulfites'];
+export const RESTRICTION_KEYS = ['vegetarian', 'vegan', 'pescatarian', 'halal', 'kosher'];
+export const INTOLERANCE_KEYS = ['lactose', 'gluten', 'fructose', 'histamine'];
+export const FEATURE_KEYS = ['spicy', 'verySpicy', 'lowCarb', 'highProtein', 'lowFat', 'lowCalorie', 'highFiber', 'highSugar', 'highSodium', 'sweet', 'sugarFree'];
+export const DIET_KEYS = ['keto', 'paleo', 'mediterranean', 'diabeticFriendly', 'lowGi'];
 
 /**
  * Seeds a fixed set of sample dishes (with images, nutrition, cuisine and tags) so

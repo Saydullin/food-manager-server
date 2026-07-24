@@ -13,6 +13,15 @@ export const loginRateLimiter = rateLimit({
   handler: jsonRateLimitHandler('Too many login attempts. Please try again shortly.'),
 });
 
+/** Applied to /admin/auth/login: throttles admin login attempts per IP. */
+export const adminLoginRateLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: jsonRateLimitHandler('Too many login attempts. Please try again shortly.'),
+});
+
 /** Applied to /recovery/request: recovery emails are more expensive/sensitive to spam. */
 export const recoveryRateLimiter = rateLimit({
   windowMs: 15 * 60_000,
