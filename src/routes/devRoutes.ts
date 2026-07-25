@@ -42,7 +42,7 @@ devRouter.post(
 
 // Seeds a fixed set of sample dishes so the food feed (GET /api/foods/feed) has
 // something to return in Postman. Idempotent — safe to run repeatedly.
-devRouter.post(
+devRouter.get(
   '/seed-foods',
   asyncHandler(async (_req, res) => {
     const result = await foodService.seedSampleFoods();
