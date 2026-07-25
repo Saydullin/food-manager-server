@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useDebounce } from '../lib/useDebounce';
+import { usePagination } from '../lib/usePagination';
+import { PaginationControls } from '../components/PaginationControls';
 import type { Food, FoodFormOptions, Page } from '../lib/types';
 import {
   FoodForm,
@@ -17,6 +19,10 @@ export function RecipesPage() {
   const debouncedSearch = useDebounce(search);
   const [editing, setEditing] = useState<Food | 'new' | null>(null);
   const [formValues, setFormValues] = useState<FoodFormValues>(emptyFoodForm());
+  const pagination = usePagination();
+  const { page, pageSize, setPage } = pagination;
+
+  useEffect(() => setPage(1), [debouncedSearch, setPage]);
 
   const optionsQuery = useQuery({
     queryKey: ['food-form-options'],
@@ -24,9 +30,9 @@ export function RecipesPage() {
   });
 
   const foodsQuery = useQuery({
-    queryKey: ['foods', debouncedSearch],
+    queryKey: ['foods', debouncedSearch, page, pageSize],
     queryFn: () =>
-      api.get<Page<Food>>('/admin/foods', { search: debouncedSearch || undefined, limit: 50 }),
+      api.get<Page<Food>>('/admin/foods', { search: debouncedSearch || undefined, page, pageSize }),
   });
 
   const invalidateFoods = () => queryClient.invalidateQueries({ queryKey: ['foods'] });
@@ -159,6 +165,13 @@ export function RecipesPage() {
             </tbody>
           </table>
         </div>
+      )}
+      {foodsQuery.data && (
+        <PaginationControls
+          pagination={pagination}
+          total={foodsQuery.data.total}
+          totalPages={foodsQuery.data.totalPages}
+        />
       )}
     </div>
   );

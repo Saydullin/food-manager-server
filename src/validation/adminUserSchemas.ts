@@ -6,6 +6,6 @@ export const userIdParamSchema = z.object({
 
 export const listUsersQuerySchema = z.object({
   search: z.string().trim().min(1).max(200).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-  cursor: z.string().trim().min(1).max(512).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(500).default(20),
 });
