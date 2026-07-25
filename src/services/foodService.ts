@@ -221,6 +221,20 @@ export const recordInteraction = async (
     create: { userId, foodId, action: input.action, reason, reasonDetail },
     update: { action: input.action, reason, reasonDetail },
   });
+
+  // The reasonDetail is the concrete thing the user is rejecting (e.g. a tag or
+  // cuisine code), same shape as UserFoodException.value — feed it in so the
+  // recommender (and the user's own profile view) picks up the dislike without
+  // the client having to separately call the food-exceptions endpoint.
+  if (reasonDetail) {
+    const value = reasonDetail.trim().toLowerCase();
+    await prisma.userFoodException.upsert({
+      where: { userId_value: { userId, value } },
+      create: { userId, value },
+      update: {},
+    });
+  }
+
   return shapeInteraction(row);
 };
 
