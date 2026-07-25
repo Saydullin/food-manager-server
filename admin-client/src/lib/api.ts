@@ -1,5 +1,4 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
-console.log('[api] VITE_API_BASE_URL =', JSON.stringify(API_BASE_URL));
 
 export class ApiError extends Error {
   status: number;
@@ -28,7 +27,6 @@ export interface RequestOptions {
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  console.log('[api] request()', { path, API_BASE_URL });
   const url = new URL(`${API_BASE_URL}${path}`);
   if (options.query) {
     for (const [key, value] of Object.entries(options.query)) {
@@ -37,21 +35,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   }
 
   const token = getToken();
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method: options.method ?? 'GET',
-      headers: {
-        ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-    });
-  } catch (err) {
-    console.error('[api] fetch() threw before reaching the server', err);
-    throw err;
-  }
-  console.log('[api] response status', res.status, 'for', url.toString());
+  const res = await fetch(url, {
+    method: options.method ?? 'GET',
+    headers: {
+      ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+  });
 
   if (res.status === 401) {
     onUnauthorized?.();
