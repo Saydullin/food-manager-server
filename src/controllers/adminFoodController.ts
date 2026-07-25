@@ -3,12 +3,12 @@ import { asyncHandler } from '../utils/asyncHandler';
 import * as adminFoodService from '../services/adminFoodService';
 
 export const listFoods = asyncHandler(async (req: Request, res: Response) => {
-  const page = await adminFoodService.listFoods({
+  const result = await adminFoodService.listFoods({
     search: req.query.search as unknown as string | undefined,
-    limit: req.query.limit as unknown as number,
-    cursor: req.query.cursor as unknown as string | undefined,
+    page: req.query.page as unknown as number,
+    pageSize: req.query.pageSize as unknown as number,
   });
-  res.status(200).json(page);
+  res.status(200).json(result);
 });
 
 export const createFood = asyncHandler(async (req: Request, res: Response) => {

@@ -1,8 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { AppError } from '../utils/errors';
-import { decodeCursor, encodeCursor } from '../utils/cursor';
-import { type Page } from './foodService';
+import { toPagedResult, type PagedResult } from '../utils/pagination';
 
 // The safe fields exposed to the admin panel — never device public keys or
 // token hashes, same boundary userService.profileSelect draws for the mobile API.
@@ -32,45 +31,32 @@ export interface UserListItem {
 
 export interface ListUsersParams {
   search?: string;
-  limit: number;
-  cursor?: string;
+  page: number;
+  pageSize: number;
 }
 
-export const listUsers = async ({ search, limit, cursor }: ListUsersParams): Promise<Page<UserListItem>> => {
-  const decoded = cursor ? decodeCursor(cursor) : null;
+export const listUsers = async ({ search, page, pageSize }: ListUsersParams): Promise<PagedResult<UserListItem>> => {
+  const where: Prisma.UserWhereInput = search
+    ? {
+        OR: [
+          { username: { contains: search, mode: 'insensitive' as const } },
+          { email: { contains: search, mode: 'insensitive' as const } },
+        ],
+      }
+    : {};
 
-  const rows = await prisma.user.findMany({
-    where: {
-      ...(search
-        ? {
-            OR: [
-              { username: { contains: search, mode: 'insensitive' as const } },
-              { email: { contains: search, mode: 'insensitive' as const } },
-            ],
-          }
-        : {}),
-      ...(decoded
-        ? {
-            OR: [
-              { createdAt: { lt: decoded.createdAt } },
-              { createdAt: decoded.createdAt, id: { lt: decoded.id } },
-            ],
-          }
-        : {}),
-    },
-    select: userListSelect,
-    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-    take: limit + 1,
-  });
+  const [rows, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      select: userListSelect,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.user.count({ where }),
+  ]);
 
-  const hasMore = rows.length > limit;
-  const kept = hasMore ? rows.slice(0, limit) : rows;
-  const last = kept[kept.length - 1];
-  return {
-    items: kept,
-    nextCursor: hasMore && last ? encodeCursor({ createdAt: last.createdAt, id: last.id }) : null,
-    hasMore,
-  };
+  return toPagedResult(rows, page, pageSize, total);
 };
 
 export interface UserDetail extends UserListItem {

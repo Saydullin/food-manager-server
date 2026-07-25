@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useDebounce } from '../lib/useDebounce';
+import { usePagination } from '../lib/usePagination';
+import { PaginationControls } from '../components/PaginationControls';
 import type { AdminUserDetail, AdminUserListItem, Page } from '../lib/types';
 
 export function UsersPage() {
@@ -9,11 +11,19 @@ export function UsersPage() {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const pagination = usePagination();
+  const { page, pageSize, setPage } = pagination;
+
+  useEffect(() => setPage(1), [debouncedSearch, setPage]);
 
   const usersQuery = useQuery({
-    queryKey: ['users', debouncedSearch],
+    queryKey: ['users', debouncedSearch, page, pageSize],
     queryFn: () =>
-      api.get<Page<AdminUserListItem>>('/admin/users', { search: debouncedSearch || undefined, limit: 50 }),
+      api.get<Page<AdminUserListItem>>('/admin/users', {
+        search: debouncedSearch || undefined,
+        page,
+        pageSize,
+      }),
   });
 
   const detailQuery = useQuery({
@@ -98,6 +108,13 @@ export function UsersPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {usersQuery.data && (
+          <PaginationControls
+            pagination={pagination}
+            total={usersQuery.data.total}
+            totalPages={usersQuery.data.totalPages}
+          />
         )}
       </div>
 

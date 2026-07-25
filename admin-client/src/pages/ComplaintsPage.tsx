@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { usePagination } from '../lib/usePagination';
+import { PaginationControls } from '../components/PaginationControls';
 import type { Complaint, ComplaintStatus, Page } from '../lib/types';
 
 const TABS: { label: string; value: ComplaintStatus | undefined }[] = [
@@ -13,10 +15,14 @@ const TABS: { label: string; value: ComplaintStatus | undefined }[] = [
 export function ComplaintsPage() {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<ComplaintStatus | undefined>('OPEN');
+  const pagination = usePagination();
+  const { page, pageSize, setPage } = pagination;
+
+  useEffect(() => setPage(1), [status, setPage]);
 
   const complaintsQuery = useQuery({
-    queryKey: ['complaints', status],
-    queryFn: () => api.get<Page<Complaint>>('/admin/complaints', { status, limit: 50 }),
+    queryKey: ['complaints', status, page, pageSize],
+    queryFn: () => api.get<Page<Complaint>>('/admin/complaints', { status, page, pageSize }),
   });
 
   const resolveMutation = useMutation({
@@ -93,6 +99,13 @@ export function ComplaintsPage() {
             <p className="text-neutral-500">No complaints in this view.</p>
           )}
         </div>
+      )}
+      {complaintsQuery.data && (
+        <PaginationControls
+          pagination={pagination}
+          total={complaintsQuery.data.total}
+          totalPages={complaintsQuery.data.totalPages}
+        />
       )}
     </div>
   );

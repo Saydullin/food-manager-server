@@ -1,6 +1,7 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { AppError } from '../utils/errors';
-import { decodeCursor } from '../utils/cursor';
+import { toPagedResult, type PagedResult } from '../utils/pagination';
 import {
   ALLERGEN_KEYS,
   DIET_KEYS,
@@ -10,39 +11,33 @@ import {
   flagsFrom,
   foodInclude,
   shapeFood,
-  toPage,
   type FoodView,
-  type Page,
 } from './foodService';
 
 export interface ListFoodsParams {
   search?: string;
-  limit: number;
-  cursor?: string;
+  page: number;
+  pageSize: number;
 }
 
 /** Admin listing of every dish (no swipe-exclusion), optionally filtered by name. */
-export const listFoods = async ({ search, limit, cursor }: ListFoodsParams): Promise<Page<FoodView>> => {
-  const decoded = cursor ? decodeCursor(cursor) : null;
+export const listFoods = async ({ search, page, pageSize }: ListFoodsParams): Promise<PagedResult<FoodView>> => {
+  const where: Prisma.FoodWhereInput = search
+    ? { name: { contains: search, mode: 'insensitive' as const } }
+    : {};
 
-  const rows = await prisma.food.findMany({
-    where: {
-      ...(search ? { name: { contains: search, mode: 'insensitive' as const } } : {}),
-      ...(decoded
-        ? {
-            OR: [
-              { createdAt: { lt: decoded.createdAt } },
-              { createdAt: decoded.createdAt, id: { lt: decoded.id } },
-            ],
-          }
-        : {}),
-    },
-    include: foodInclude,
-    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-    take: limit + 1,
-  });
+  const [rows, total] = await Promise.all([
+    prisma.food.findMany({
+      where,
+      include: foodInclude,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.food.count({ where }),
+  ]);
 
-  return toPage(rows, limit, (r) => ({ createdAt: r.createdAt, id: r.id }), shapeFood);
+  return toPagedResult(rows.map(shapeFood), page, pageSize, total);
 };
 
 export interface FoodPayload {

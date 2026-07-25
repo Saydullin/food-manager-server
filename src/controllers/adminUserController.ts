@@ -3,12 +3,12 @@ import { asyncHandler } from '../utils/asyncHandler';
 import * as adminUserService from '../services/adminUserService';
 
 export const listUsers = asyncHandler(async (req: Request, res: Response) => {
-  const page = await adminUserService.listUsers({
+  const result = await adminUserService.listUsers({
     search: req.query.search as unknown as string | undefined,
-    limit: req.query.limit as unknown as number,
-    cursor: req.query.cursor as unknown as string | undefined,
+    page: req.query.page as unknown as number,
+    pageSize: req.query.pageSize as unknown as number,
   });
-  res.status(200).json(page);
+  res.status(200).json(result);
 });
 
 export const getUserDetail = asyncHandler(async (req: Request, res: Response) => {

@@ -1,7 +1,9 @@
 export interface Page<T> {
   items: T[];
-  nextCursor: string | null;
-  hasMore: boolean;
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
 }
 
 export interface FoodNutrition {

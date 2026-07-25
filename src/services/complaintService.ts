@@ -1,8 +1,7 @@
-import type { ComplaintStatus, ComplaintTargetType } from '@prisma/client';
+import type { ComplaintStatus, ComplaintTargetType, Prisma } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { AppError } from '../utils/errors';
-import { decodeCursor, encodeCursor } from '../utils/cursor';
-import { type Page } from './foodService';
+import { toPagedResult, type PagedResult } from '../utils/pagination';
 
 const complaintInclude = {
   reporter: { select: { id: true, username: true } },
@@ -73,38 +72,29 @@ export const fileComplaint = async (reporterId: string, input: FileComplaintInpu
 
 export interface ListComplaintsParams {
   status?: ComplaintStatus;
-  limit: number;
-  cursor?: string;
+  page: number;
+  pageSize: number;
 }
 
-export const listComplaints = async ({ status, limit, cursor }: ListComplaintsParams): Promise<Page<ComplaintView>> => {
-  const decoded = cursor ? decodeCursor(cursor) : null;
+export const listComplaints = async ({
+  status,
+  page,
+  pageSize,
+}: ListComplaintsParams): Promise<PagedResult<ComplaintView>> => {
+  const where: Prisma.ComplaintWhereInput = status ? { status } : {};
 
-  const rows = await prisma.complaint.findMany({
-    where: {
-      ...(status ? { status } : {}),
-      ...(decoded
-        ? {
-            OR: [
-              { createdAt: { lt: decoded.createdAt } },
-              { createdAt: decoded.createdAt, id: { lt: decoded.id } },
-            ],
-          }
-        : {}),
-    },
-    include: complaintInclude,
-    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-    take: limit + 1,
-  });
+  const [rows, total] = await Promise.all([
+    prisma.complaint.findMany({
+      where,
+      include: complaintInclude,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.complaint.count({ where }),
+  ]);
 
-  const hasMore = rows.length > limit;
-  const kept = hasMore ? rows.slice(0, limit) : rows;
-  const last = kept[kept.length - 1];
-  return {
-    items: kept.map(shapeComplaint),
-    nextCursor: hasMore && last ? encodeCursor({ createdAt: last.createdAt, id: last.id }) : null,
-    hasMore,
-  };
+  return toPagedResult(rows.map(shapeComplaint), page, pageSize, total);
 };
 
 /** Marks a complaint resolved or dismissed by the acting admin. */
