@@ -25,6 +25,7 @@ export function LoginPage() {
       login(res.accessToken);
       navigate('/recipes', { replace: true });
     } catch (err) {
+      console.error('[LoginPage] login failed', err);
       setError(err instanceof ApiError ? err.message : 'Login failed');
     } finally {
       setSubmitting(false);
