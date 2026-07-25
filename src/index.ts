@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import { env } from './config/env';
 import { UPLOAD_DIR_ABS } from './config/upload';
+import { seedDefaultAdmin } from './config/seedAdmin';
 import { apiRouter } from './routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
@@ -24,6 +25,10 @@ app.use('/api', apiRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-app.listen(env.PORT, () => {
-  console.log(`[server] listening on http://localhost:${env.PORT}`);
-});
+seedDefaultAdmin()
+  .catch((err) => console.error('[seedAdmin] failed to seed default admin', err))
+  .finally(() => {
+    app.listen(env.PORT, () => {
+      console.log(`[server] listening on http://localhost:${env.PORT}`);
+    });
+  });
