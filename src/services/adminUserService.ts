@@ -12,6 +12,7 @@ const userListSelect = {
   emailVerified: true,
   imageUrl: true,
   name: true,
+  status: true,
   isBanned: true,
   bannedAt: true,
   createdAt: true,
@@ -24,6 +25,7 @@ export interface UserListItem {
   emailVerified: boolean;
   imageUrl: string | null;
   name: string | null;
+  status: string | null;
   isBanned: boolean;
   bannedAt: Date | null;
   createdAt: Date;
@@ -61,7 +63,6 @@ export const listUsers = async ({ search, page, pageSize }: ListUsersParams): Pr
 
 export interface UserDetail extends UserListItem {
   age: number | null;
-  status: string | null;
   description: string | null;
   interactionCount: number;
   complaintsAgainstCount: number;
@@ -82,6 +83,21 @@ export const getUserDetail = async (userId: string): Promise<UserDetail> => {
   ]);
 
   return { ...user, interactionCount, complaintsAgainstCount, complaintsFiledCount };
+};
+
+export const setStatus = async (userId: string, status: string | null): Promise<UserListItem> => {
+  try {
+    return await prisma.user.update({
+      where: { id: userId },
+      data: { status },
+      select: userListSelect,
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+      throw AppError.notFound('User not found', 'USER_NOT_FOUND');
+    }
+    throw err;
+  }
 };
 
 export const setBanned = async (userId: string, banned: boolean): Promise<UserListItem> => {

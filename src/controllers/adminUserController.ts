@@ -16,6 +16,11 @@ export const getUserDetail = asyncHandler(async (req: Request, res: Response) =>
   res.status(200).json({ user });
 });
 
+export const updateUserStatus = asyncHandler(async (req: Request, res: Response) => {
+  const user = await adminUserService.setStatus(req.params.userId, req.body.status);
+  res.status(200).json({ user });
+});
+
 export const banUser = asyncHandler(async (req: Request, res: Response) => {
   const user = await adminUserService.setBanned(req.params.userId, true);
   res.status(200).json({ user });

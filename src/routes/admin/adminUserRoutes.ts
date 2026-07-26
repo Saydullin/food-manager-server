@@ -1,8 +1,12 @@
 import { Router } from 'express';
 import * as adminUserController from '../../controllers/adminUserController';
 import { requireAdmin } from '../../middleware/requireAdmin';
-import { validateParams, validateQuery } from '../../middleware/validate';
-import { listUsersQuerySchema, userIdParamSchema } from '../../validation/adminUserSchemas';
+import { validateBody, validateParams, validateQuery } from '../../middleware/validate';
+import {
+  listUsersQuerySchema,
+  updateUserStatusSchema,
+  userIdParamSchema,
+} from '../../validation/adminUserSchemas';
 
 export const adminUserRouter = Router();
 
@@ -12,6 +16,13 @@ adminUserRouter.get(
   requireAdmin,
   validateParams(userIdParamSchema),
   adminUserController.getUserDetail,
+);
+adminUserRouter.patch(
+  '/:userId/status',
+  requireAdmin,
+  validateParams(userIdParamSchema),
+  validateBody(updateUserStatusSchema),
+  adminUserController.updateUserStatus,
 );
 adminUserRouter.post(
   '/:userId/ban',
