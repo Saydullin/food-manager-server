@@ -111,7 +111,7 @@ storage/CDN and sends the resulting `https://…` link here (same convention as 
 
 ### GET /users/me  🔒
 → 200 `{ user }` where `user` is
-`{ id, username, email, emailVerified, imageUrl, name, age, status, description, createdAt, updatedAt, foodPreferences, foodExceptions, diets, settings }`.
+`{ id, username, email, emailVerified, imageUrl, name, age, status, description, isBanned, createdAt, updatedAt, foodPreferences, foodExceptions, diets, settings }`.
 `settings` is the object described under **Settings** below — so a single `GET /users/me`
 gives the client everything, including the user's preferences, right after login.
 

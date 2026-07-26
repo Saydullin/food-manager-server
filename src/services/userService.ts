@@ -36,6 +36,7 @@ const profileSelect = {
   age: true,
   status: true,
   description: true,
+  isBanned: true,
   createdAt: true,
   updatedAt: true,
   foodPreferences: { select: { value: true }, orderBy: { value: 'asc' } },
@@ -60,6 +61,7 @@ export interface UserProfile {
   age: number | null;
   status: string | null;
   description: string | null;
+  isBanned: boolean;
   createdAt: Date;
   updatedAt: Date;
   foodPreferences: string[];
@@ -78,6 +80,7 @@ const shapeProfile = (row: UserRow): UserProfile => ({
   age: row.age,
   status: row.status,
   description: row.description,
+  isBanned: row.isBanned,
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
   foodPreferences: row.foodPreferences.map((p) => p.value),
