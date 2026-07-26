@@ -123,6 +123,13 @@ export function UsersPage() {
         {!selectedId && <p className="text-neutral-500">Select a user to see details.</p>}
         {detailQuery.data && (
           <div className="rounded-lg border border-neutral-200 p-4 text-sm dark:border-neutral-800">
+            {detailQuery.data.user.imageUrl && (
+              <img
+                src={detailQuery.data.user.imageUrl}
+                alt={detailQuery.data.user.username}
+                className="mb-3 h-24 w-24 rounded-full object-cover"
+              />
+            )}
             <p className="mb-1">
               <span className="font-medium">Username:</span> {detailQuery.data.user.username}
             </p>
@@ -153,8 +160,34 @@ export function UsersPage() {
               <span className="font-medium">Complaints against:</span>{' '}
               {detailQuery.data.user.complaintsAgainstCount}
             </p>
-            <p className="mb-3">
+            <p className="mb-1">
               <span className="font-medium">Complaints filed:</span> {detailQuery.data.user.complaintsFiledCount}
+            </p>
+            <p className="mb-1">
+              <span className="font-medium">Food preferences:</span>{' '}
+              {detailQuery.data.user.foodPreferences.length > 0
+                ? detailQuery.data.user.foodPreferences.join(', ')
+                : '—'}
+            </p>
+            <p className="mb-1">
+              <span className="font-medium">Food exceptions:</span>{' '}
+              {detailQuery.data.user.foodExceptions.length > 0
+                ? detailQuery.data.user.foodExceptions.join(', ')
+                : '—'}
+            </p>
+            <p className="mb-1">
+              <span className="font-medium">Diets:</span>{' '}
+              {detailQuery.data.user.diets.length > 0 ? detailQuery.data.user.diets.join(', ') : '—'}
+            </p>
+            <p className="mb-1">
+              <span className="font-medium">Language:</span> {detailQuery.data.user.settings?.language ?? '—'}
+            </p>
+            <p className="mb-1">
+              <span className="font-medium">Theme:</span> {detailQuery.data.user.settings?.theme ?? '—'}
+            </p>
+            <p className="mb-3">
+              <span className="font-medium">Push notifications:</span>{' '}
+              {detailQuery.data.user.settings ? (detailQuery.data.user.settings.pushNotificationsEnabled ? 'On' : 'Off') : '—'}
             </p>
             <button
               onClick={() =>

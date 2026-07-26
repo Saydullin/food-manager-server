@@ -69,6 +69,10 @@ export interface AdminUserDetail extends AdminUserListItem {
   interactionCount: number;
   complaintsAgainstCount: number;
   complaintsFiledCount: number;
+  foodPreferences: string[];
+  foodExceptions: string[];
+  diets: string[];
+  settings: { language: string; theme: string; pushNotificationsEnabled: boolean } | null;
 }
 
 export type ComplaintStatus = 'OPEN' | 'RESOLVED' | 'DISMISSED';
