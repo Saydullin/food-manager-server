@@ -22,9 +22,24 @@ export function Layout() {
         <button
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="Toggle menu"
-          className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm dark:border-neutral-700"
+          aria-expanded={menuOpen}
+          className="flex h-9 w-9 flex-col items-center justify-center gap-1.5 rounded-md border border-neutral-300 dark:border-neutral-700"
         >
-          {menuOpen ? 'Close' : 'Menu'}
+          <span
+            className={`h-0.5 w-5 bg-current transition-transform duration-200 ${
+              menuOpen ? 'translate-y-2 rotate-45' : ''
+            }`}
+          />
+          <span
+            className={`h-0.5 w-5 bg-current transition-opacity duration-200 ${
+              menuOpen ? 'opacity-0' : 'opacity-100'
+            }`}
+          />
+          <span
+            className={`h-0.5 w-5 bg-current transition-transform duration-200 ${
+              menuOpen ? '-translate-y-2 -rotate-45' : ''
+            }`}
+          />
         </button>
       </header>
 
@@ -33,8 +48,8 @@ export function Layout() {
       )}
 
       <aside
-        className={`z-30 flex w-56 shrink-0 flex-col border-r border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-950 md:static md:flex ${
-          menuOpen ? 'fixed inset-y-0 left-0 flex' : 'hidden'
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 max-w-[80vw] shrink-0 flex-col border-r border-neutral-200 bg-neutral-50 p-4 transition-transform duration-200 dark:border-neutral-800 dark:bg-neutral-950 md:static md:w-56 md:max-w-none md:translate-x-0 ${
+          menuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <h1 className="mb-6 hidden px-3 text-lg font-semibold md:block">Food Manager Admin</h1>
