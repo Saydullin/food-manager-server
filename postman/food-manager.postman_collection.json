@@ -41,7 +41,12 @@
     { "key": "foodId2", "value": "" },
     { "key": "foodId3", "value": "" },
     { "key": "feedCursor", "value": "" },
-    { "key": "feedLimit", "value": "3" }
+    { "key": "feedLimit", "value": "3" },
+    { "key": "adminEmail", "value": "PASTE_ADMIN_EMAIL" },
+    { "key": "adminPassword", "value": "PASTE_ADMIN_PASSWORD" },
+    { "key": "adminAccessToken", "value": "" },
+    { "key": "adminFoodId", "value": "" },
+    { "key": "complaintId", "value": "" }
   ],
   "item": [
     {
@@ -1256,6 +1261,283 @@
               "formdata": [{ "key": "image", "type": "file", "src": [] }]
             },
             "description": "Uploads a single image file (multipart field 'image': jpeg/png/webp/gif, max UPLOAD_MAX_FILE_SIZE_MB — 5MB by default) to local disk storage and returns its public URL as { imageUrl }. Select a file for the 'image' form-data field before sending. The client then sets that URL on whichever resource references it, e.g. PUT /users/me/image (5.2) — this request also copies the returned URL into the profileImageUrl collection variable so 5.2 can be run immediately after with the real uploaded file. An unsupported MIME type returns 400 UNSUPPORTED_IMAGE_TYPE, an oversized file returns 400 UPLOAD_LIMIT_FILE_SIZE, and a missing file returns 400 MISSING_FILE."
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Admin: Dish (Recipe) CRUD",
+      "item": [
+        {
+          "name": "12.0 Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('adminAccessToken', body.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/admin/auth/login", "host": ["{{baseUrl}}"], "path": ["admin", "auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "description": "Logs in an admin panel account (separate email+password auth from the mobile app's device-key auth). Set the adminEmail/adminPassword collection variables first. Captures accessToken into adminAccessToken for the requests below."
+          }
+        },
+        {
+          "name": "12.1 Create Dish with Translations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('adminFoodId', body.food.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/admin/foods", "host": ["{{baseUrl}}"], "path": ["admin", "foods"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"translations\": [\n    { \"language\": \"en\", \"name\": \"Spicy Tuna Roll\", \"description\": \"Fresh tuna, rice, nori.\" },\n    { \"language\": \"ru\", \"name\": \"Острый ролл с тунцом\", \"description\": \"Свежий тунец, рис, нори.\" }\n  ],\n  \"cuisineCode\": \"JAPANESE\",\n  \"images\": [\"https://example.com/dishes/tuna-roll.jpg\"],\n  \"nutrition\": { \"calories\": 320, \"servings\": 1, \"protein\": 18, \"fat\": 9, \"carbs\": 40 },\n  \"allergens\": [\"FISH\"],\n  \"features\": [\"SPICY\"]\n}"
+            },
+            "description": "Creates a dish. translations must include at least one entry and always the default language \"en\" — missing/empty translations or a missing \"en\" entry returns 400. Captures the new id into adminFoodId."
+          }
+        },
+        {
+          "name": "12.2 List Dishes (search matches any language)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('items is an array', () => pm.expect(body.items).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/admin/foods?search=tuna&page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "foods"],
+              "query": [{ "key": "search", "value": "tuna" }, { "key": "page", "value": "1" }, { "key": "pageSize", "value": "20" }]
+            },
+            "description": "Every dish (no swipe-exclusion, unlike the mobile feed). search matches name in any translation language, case-insensitive."
+          }
+        },
+        {
+          "name": "12.3 Update Dish Translations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('translation was updated', () => pm.expect(body.food.translations.find((t) => t.language === 'en').name).to.eql('Spicy Tuna Roll (Updated)'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/admin/foods/{{adminFoodId}}", "host": ["{{baseUrl}}"], "path": ["admin", "foods", "{{adminFoodId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"translations\": [\n    { \"language\": \"en\", \"name\": \"Spicy Tuna Roll (Updated)\", \"description\": \"Fresh tuna, rice, nori — now spicier.\" },\n    { \"language\": \"ru\", \"name\": \"Острый ролл с тунцом (обновлено)\" }\n  ]\n}"
+            },
+            "description": "Partial update — every field optional, at least one required. Sending translations replaces the whole set (must still include \"en\"), same full-replacement convention as images/tag arrays."
+          }
+        },
+        {
+          "name": "12.4 Get Food Form Options (languages)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('includes languages', () => pm.expect(body.languages).to.include('en'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/admin/meta/food-form-options", "host": ["{{baseUrl}}"], "path": ["admin", "meta", "food-form-options"] },
+            "description": "Catalogs + fixed tag-code lists the admin recipe form needs in one round-trip: cuisines, diets, allergens, dietaryRestrictions, intolerances, features, foodDiets, and the default language tabs (languages)."
+          }
+        },
+        {
+          "name": "12.5 Delete Dish",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/admin/foods/{{adminFoodId}}", "host": ["{{baseUrl}}"], "path": ["admin", "foods", "{{adminFoodId}}"] },
+            "description": "Deletes a dish and its translations/images/tags/interactions via cascade."
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Complaints",
+      "item": [
+        {
+          "name": "13.1 Report a Dish (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('complaint targets the dish', () => pm.expect(body.complaint.targetType).to.eql('FOOD'));",
+                  "pm.collectionVariables.set('complaintId', body.complaint.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/complaints", "host": ["{{baseUrl}}"], "path": ["complaints"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"FOOD\",\n  \"targetFoodId\": \"{{foodId}}\",\n  \"reason\": \"Description does not match the actual dish.\"\n}"
+            },
+            "description": "Reports a dish. targetFoodId is required when targetType is FOOD. Unknown dish id returns 404 FOOD_NOT_FOUND. Captures the new complaint id into complaintId for the admin requests below."
+          }
+        },
+        {
+          "name": "13.2 Report a User (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('complaint targets the user', () => pm.expect(body.complaint.targetType).to.eql('USER'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/complaints", "host": ["{{baseUrl}}"], "path": ["complaints"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetType\": \"USER\",\n  \"targetUserId\": \"{{userId}}\",\n  \"reason\": \"Inappropriate profile content.\"\n}"
+            },
+            "description": "Reports a user. targetUserId is required when targetType is USER. Reporting yourself (targetUserId === your own userId) returns 400 CANNOT_REPORT_SELF. Unknown user id returns 404 USER_NOT_FOUND."
+          }
+        }
+      ]
+    },
+    {
+      "name": "14. Admin: Complaints",
+      "item": [
+        {
+          "name": "14.1 List Complaints (open)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('items is an array', () => pm.expect(body.items).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/admin/complaints?status=OPEN&page=1&pageSize=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "complaints"],
+              "query": [{ "key": "status", "value": "OPEN" }, { "key": "page", "value": "1" }, { "key": "pageSize", "value": "20" }]
+            },
+            "description": "Moderation queue. Optional status filter (OPEN|RESOLVED|DISMISSED); omit to list all."
+          }
+        },
+        {
+          "name": "14.2 Resolve Complaint",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('complaint is resolved', () => pm.expect(body.complaint.status).to.eql('RESOLVED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{adminAccessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/admin/complaints/{{complaintId}}", "host": ["{{baseUrl}}"], "path": ["admin", "complaints", "{{complaintId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RESOLVED\"\n}"
+            },
+            "description": "Resolves or dismisses a complaint (status: RESOLVED | DISMISSED). Stamps resolvedByAdmin (the acting admin) and resolvedAt. Unknown id returns 404 COMPLAINT_NOT_FOUND."
           }
         }
       ]

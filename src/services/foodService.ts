@@ -27,16 +27,41 @@ export interface FoodNutritionView {
   carbs: number | null;
 }
 
+// The language a dish is translated into, when a client requests it. The dish
+// catalog isn't restricted to this list (any BCP-47 tag can be stored), but
+// this is the set the admin panel offers by default.
+export const SUPPORTED_LANGUAGES = ['en', 'ru'];
+
+// The fallback language used when a client doesn't ask for one, or asks for
+// one a dish hasn't been translated into. Mirrors UserSettings.language's default.
+export const DEFAULT_LANGUAGE = 'en';
+
+export interface FoodTranslationView {
+  language: string;
+  name: string;
+  description: string | null;
+}
+
 export interface FoodView {
   id: string;
   name: string;
   description: string | null;
+  // The language the name/description above actually resolved to — may differ
+  // from the language requested if that translation didn't exist.
+  language: string;
+  availableLanguages: string[];
   cuisine: string | null;
   images: string[];
   nutrition: FoodNutritionView | null;
   tags: FoodTags;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// The admin-panel shape: every translation, rather than one resolved language,
+// since admins author/edit all of them at once.
+export interface AdminFoodView extends Omit<FoodView, 'name' | 'description' | 'language' | 'availableLanguages'> {
+  translations: FoodTranslationView[];
 }
 
 // A page of results, keyset-paginated. `nextCursor` is null on the last page.
@@ -69,6 +94,7 @@ export interface InteractionWithFoodView extends InteractionView {
 export const foodInclude = {
   cuisine: { select: { code: true } },
   images: { select: { url: true }, orderBy: { position: 'asc' } },
+  translations: { select: { language: true, name: true, description: true } },
   nutrition: true,
   allergens: true,
   dietaryRestrictions: true,
@@ -91,10 +117,19 @@ const trueTags = (row: Record<string, unknown> | null): string[] =>
         .map(([key]) => toTagCode(key))
     : [];
 
-export const shapeFood = (row: FoodRow): FoodView => ({
+// Picks the translation for `lang`, falling back to the default language, then
+// to whatever translation exists — so a dish with a gap in its catalog never
+// 404s, it just serves the closest thing to what was asked for.
+const pickTranslation = (
+  translations: FoodTranslationView[],
+  lang: string,
+): FoodTranslationView | undefined =>
+  translations.find((t) => t.language === lang) ??
+  translations.find((t) => t.language === DEFAULT_LANGUAGE) ??
+  translations[0];
+
+const sharedFoodFields = (row: FoodRow) => ({
   id: row.id,
-  name: row.name,
-  description: row.description,
   cuisine: row.cuisine?.code ?? null,
   // Prefer the gallery; fall back to the legacy single cover so older rows still
   // return at least one image.
@@ -117,6 +152,26 @@ export const shapeFood = (row: FoodRow): FoodView => ({
   },
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
+});
+
+export const shapeFood = (row: FoodRow, lang: string = DEFAULT_LANGUAGE): FoodView => {
+  const translation = pickTranslation(row.translations, lang);
+  return {
+    ...sharedFoodFields(row),
+    name: translation?.name ?? '',
+    description: translation?.description ?? null,
+    language: translation?.language ?? DEFAULT_LANGUAGE,
+    availableLanguages: row.translations.map((t) => t.language),
+  };
+};
+
+// The admin-panel shape: all translations at once, rather than one resolved
+// language, since admins author/edit every language in the same form.
+export const shapeFoodAdmin = (row: FoodRow): AdminFoodView => ({
+  ...sharedFoodFields(row),
+  translations: row.translations
+    .map((t) => ({ language: t.language, name: t.name, description: t.description }))
+    .sort((a, b) => a.language.localeCompare(b.language)),
 });
 
 const shapeInteraction = (row: {
@@ -142,6 +197,7 @@ const shapeInteraction = (row: {
 export interface FeedParams {
   limit: number;
   cursor?: string;
+  lang?: string;
 }
 
 /**
@@ -153,7 +209,10 @@ export interface FeedParams {
  * Ordering is newest-first for now; when preference-based ranking lands it slots in
  * here (the cursor contract and the swiped-set exclusion stay the same).
  */
-export const getFeed = async (userId: string, { limit, cursor }: FeedParams): Promise<Page<FoodView>> => {
+export const getFeed = async (
+  userId: string,
+  { limit, cursor, lang = DEFAULT_LANGUAGE }: FeedParams,
+): Promise<Page<FoodView>> => {
   const decoded = cursor ? decodeCursor(cursor) : null;
 
   const rows = await prisma.food.findMany({
@@ -175,14 +234,14 @@ export const getFeed = async (userId: string, { limit, cursor }: FeedParams): Pr
     take: limit + 1,
   });
 
-  return toPage(rows, limit, (r) => ({ createdAt: r.createdAt, id: r.id }), shapeFood);
+  return toPage(rows, limit, (r) => ({ createdAt: r.createdAt, id: r.id }), (r) => shapeFood(r, lang));
 };
 
 /** Full detail for a single dish. 404s if it doesn't exist. */
-export const getFood = async (foodId: string): Promise<FoodView> => {
+export const getFood = async (foodId: string, lang: string = DEFAULT_LANGUAGE): Promise<FoodView> => {
   const row = await prisma.food.findUnique({ where: { id: foodId }, include: foodInclude });
   if (!row) throw AppError.notFound('Food not found', 'FOOD_NOT_FOUND');
-  return shapeFood(row);
+  return shapeFood(row, lang);
 };
 
 // ---------------------------------------------------------------------------
@@ -252,6 +311,7 @@ export interface ListInteractionsParams {
   action?: FoodInteractionAction;
   limit: number;
   cursor?: string;
+  lang?: string;
 }
 
 /**
@@ -262,7 +322,7 @@ export interface ListInteractionsParams {
  */
 export const listInteractions = async (
   userId: string,
-  { action, limit, cursor }: ListInteractionsParams,
+  { action, limit, cursor, lang = DEFAULT_LANGUAGE }: ListInteractionsParams,
 ): Promise<Page<InteractionWithFoodView>> => {
   const decoded = cursor ? decodeCursor(cursor) : null;
 
@@ -288,7 +348,7 @@ export const listInteractions = async (
     rows,
     limit,
     (r) => ({ createdAt: r.createdAt, id: r.id }),
-    (r) => ({ ...shapeInteraction(r), food: shapeFood(r.food) }),
+    (r) => ({ ...shapeInteraction(r), food: shapeFood(r.food, lang) }),
   );
 };
 
@@ -940,10 +1000,17 @@ export const seedSampleFoods = async (): Promise<{ count: number }> => {
 
   for (const food of SAMPLE_FOODS) {
     const cuisineId = cuisineIdByCode.get(food.cuisine) ?? null;
-    const base = { name: food.name, description: food.description, cuisineId };
+    const base = { cuisineId };
 
     await prisma.$transaction(async (tx) => {
       await tx.food.upsert({ where: { id: food.id }, create: { id: food.id, ...base }, update: base });
+
+      const translation = { foodId: food.id, language: DEFAULT_LANGUAGE, name: food.name, description: food.description };
+      await tx.foodTranslation.upsert({
+        where: { foodId_language: { foodId: food.id, language: DEFAULT_LANGUAGE } },
+        create: translation,
+        update: translation,
+      });
 
       // Child rows: replace-in-full so a re-seed reflects edits to SAMPLE_FOODS.
       await tx.foodImage.deleteMany({ where: { foodId: food.id } });

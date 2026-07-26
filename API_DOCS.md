@@ -167,13 +167,16 @@ sends as `reasonDetail` for a `WRONG_CUISINE` dislike (see below).
 
 ## Food feed & swipe (Tinder-style)
 
-The recommendation deck. A **dish** is returned fully shaped:
+The recommendation deck. A **dish** is returned fully shaped, with its name/description resolved to
+one language:
 
 ```jsonc
 {
   "id": "uuid",
   "name": "Spicy Tuna Roll",
   "description": "…",                 // nullable
+  "language": "en",                   // the language name/description actually resolved to
+  "availableLanguages": ["en", "ru"], // every language this dish is translated into
   "cuisine": "JAPANESE",              // nullable; a code from GET /cuisines
   "images": ["https://…1.jpg", …],    // 1..7, ordered (first = cover); [] if none
   "nutrition": {                      // nullable
@@ -191,6 +194,12 @@ The recommendation deck. A **dish** is returned fully shaped:
 }
 ```
 
+**Multi-language content.** Every endpoint below that returns a dish accepts an optional `?lang=`
+query param — a BCP-47 tag, e.g. `en`, `ru`, `en-US` (case-insensitive). If omitted, or if the dish
+has no translation for the requested language, the server falls back to the default language
+(`en`), then to whichever translation exists — a dish is never omitted or 404s just because a
+translation is missing. The resolved language is always echoed back in the `language` field.
+
 **Pagination is keyset (cursor), not offset.** The feed subtracts the dishes the user has already
 swiped, and that set grows as they swipe — a fixed offset would skip/repeat rows, so instead every
 list response is:
@@ -203,11 +212,11 @@ To get the next page, pass `nextCursor` back as `?cursor=…`. `nextCursor` is `
 `false`) on the last page. The cursor is opaque — treat it as a token; a malformed one returns
 `400 INVALID_CURSOR`.
 
-### GET /foods/feed?limit=&cursor=  🔒
+### GET /foods/feed?limit=&cursor=&lang=  🔒
 A page of dishes the user has **not swiped yet**, newest first. `limit` is `1`–`50` (default `10`).
 → 200 `{ items: [dish], nextCursor, hasMore }`
 
-### GET /foods/:foodId  🔒
+### GET /foods/:foodId?lang=  🔒
 Full detail for one dish (same shape as a feed item). Non-UUID id → `400`; unknown id →
 `404 FOOD_NOT_FOUND`.
 → 200 `{ food }`
@@ -234,7 +243,7 @@ recommender will learn from.
 Undo a swipe (rewind): removes the verdict so the dish re-enters the feed. Idempotent — never 404s.
 → 200 `{ removed: true|false }`
 
-### GET /foods/interactions?action=&limit=&cursor=  🔒
+### GET /foods/interactions?action=&limit=&cursor=&lang=  🔒
 The user's own swipe history ("my likes / skips / dislikes"), newest first, same cursor pagination as
 the feed. Optional `action` filter (`LIKE`|`SKIP`|`DISLIKE`). Each item embeds the full dish.
 → 200 `{ items: [{ foodId, action, reason, reasonDetail, createdAt, updatedAt, food }], nextCursor, hasMore }`
@@ -244,4 +253,93 @@ Seeds a fixed set of sample dishes (images + nutrition + cuisine + tags) so the 
 Idempotent. Mounted only when `NODE_ENV != production`, like the `/api/dev` keystore helpers.
 → 200 `{ count }`
 
-🔒 = requires `Authorization: Bearer <accessToken>`
+## Complaints  🔒
+Lets a user report another user or a dish. Reports queue up for admin moderation (see below).
+
+### POST /complaints  🔒
+Body: `{ targetType, targetUserId?, targetFoodId?, reason }`.
+
+- `targetType` — `"USER"` | `"FOOD"`.
+- `targetUserId` — required (and only allowed) when `targetType` is `USER`. Reporting yourself → `400 CANNOT_REPORT_SELF`. Unknown user → `404 USER_NOT_FOUND`.
+- `targetFoodId` — required (and only allowed) when `targetType` is `FOOD`. Unknown dish → `404 FOOD_NOT_FOUND`.
+- `reason` — free text, 1–1000 chars.
+
+→ 201 `{ complaint }`
+
+## Admin: dish (recipe) CRUD  🔑
+
+All routes below require an admin session (`🔑`, distinct from the mobile `🔒` bearer auth — see
+Admin Auth). Unlike the consumer-facing dish shape above, admin responses return **every**
+translation at once (admins author all languages in one form), not one resolved language:
+
+```jsonc
+{
+  "id": "uuid",
+  "translations": [
+    { "language": "en", "name": "Spicy Tuna Roll", "description": "…" },
+    { "language": "ru", "name": "Острый ролл с тунцом", "description": "…" }
+  ],
+  "cuisine": "JAPANESE", "images": […], "nutrition": {…}, "tags": {…},
+  "createdAt": "…", "updatedAt": "…"
+}
+```
+
+- `translations` — at least one entry, and **must include the default language `"en"`**; every
+  other field can fall back to it, so it's the one language that must always exist.
+  Each entry: `{ language, name, description? }`. `language` is a BCP-47 tag (lowercased,
+  e.g. `"en"`, `"ru"`, `"en-us"`); `name` is required, `description` optional/nullable.
+
+### GET /admin/foods?search=&page=&pageSize=  🔑
+Every dish (no swipe-exclusion). `search` matches `name` in **any** language, case-insensitive.
+→ 200 `{ items: [dish], page, pageSize, total, totalPages }`
+
+### POST /admin/foods  🔑
+Creates a dish. Body: `{ translations, cuisineCode?, images?, nutrition?, allergens?, dietaryRestrictions?, intolerances?, features?, diets? }`.
+Missing/empty `translations`, or missing the default-language entry, → `400`.
+→ 201 `{ food }`
+
+### PATCH /admin/foods/:foodId  🔑
+Partial update — every field optional, but at least one must be present. Sending `translations`
+**replaces the whole set** (same convention as `images`/tag arrays: full replacement, not a merge),
+and it must still satisfy the "includes default language" rule.
+→ 200 `{ food }`
+
+### DELETE /admin/foods/:foodId  🔑
+Deletes a dish (and its translations/images/tags/interactions, via cascade).
+→ 204
+
+### GET /admin/meta/food-form-options  🔑
+Catalogs + fixed tag-code lists the admin recipe form needs, including `languages` — the set of
+languages the admin UI offers by default (currently `["en", "ru"]`; the API itself accepts any
+BCP-47 tag, this list is just what the form's language tabs show).
+→ 200 `{ cuisines, diets, allergens, dietaryRestrictions, intolerances, features, foodDiets, languages }`
+
+## Admin: complaints  🔑
+Moderation queue for reports filed via `POST /complaints`. A complaint targets either a user or a
+dish (`targetType`), and starts life as `OPEN`.
+
+```jsonc
+{
+  "id": "uuid",
+  "targetType": "USER", // or "FOOD"
+  "reason": "...",
+  "status": "OPEN", // "OPEN" | "RESOLVED" | "DISMISSED"
+  "createdAt": "…", "resolvedAt": null,
+  "reporter": { "id": "uuid", "username": "…" },
+  "targetUser": { "id": "uuid", "username": "…" }, // null when targetType is FOOD
+  "targetFood": { "id": "uuid", "name": "…" }, // null when targetType is USER
+  "resolvedByAdmin": null // { id, name } once resolved/dismissed
+}
+```
+
+### GET /admin/complaints?status=&page=&pageSize=  🔑
+Optional `status` filter (`OPEN`|`RESOLVED`|`DISMISSED`); omitted returns all.
+→ 200 `{ items: [complaint], page, pageSize, total, totalPages }`
+
+### PATCH /admin/complaints/:complaintId  🔑
+Resolves or dismisses a complaint. Body: `{ status }` where `status` is `"RESOLVED"` | `"DISMISSED"`.
+Stamps `resolvedByAdmin` (the acting admin) and `resolvedAt`. Unknown id → `404 COMPLAINT_NOT_FOUND`.
+→ 200 `{ complaint }`
+
+🔒 = requires `Authorization: Bearer <accessToken>` (mobile app auth)
+🔑 = requires an authenticated admin session (admin panel auth)

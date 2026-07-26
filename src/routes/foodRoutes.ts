@@ -4,6 +4,7 @@ import { requireAuth } from '../middleware/requireAuth';
 import { validateBody, validateParams, validateQuery } from '../middleware/validate';
 import {
   feedQuerySchema,
+  foodDetailQuerySchema,
   foodIdParamSchema,
   listInteractionsQuerySchema,
   recordInteractionSchema,
@@ -27,7 +28,13 @@ foodRouter.get(
 );
 
 // Full detail for one dish.
-foodRouter.get('/:foodId', requireAuth, validateParams(foodIdParamSchema), foodController.getFood);
+foodRouter.get(
+  '/:foodId',
+  requireAuth,
+  validateParams(foodIdParamSchema),
+  validateQuery(foodDetailQuerySchema),
+  foodController.getFood,
+);
 
 // Record / overwrite a swipe (LIKE, SKIP, or DISLIKE + reason), and undo one.
 foodRouter.post(

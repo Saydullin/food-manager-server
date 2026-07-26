@@ -8,6 +8,7 @@ import {
   FEATURE_KEYS,
   INTOLERANCE_KEYS,
   RESTRICTION_KEYS,
+  SUPPORTED_LANGUAGES,
 } from '../services/foodService';
 
 // The catalogs + fixed tag-code lists the admin recipe form needs to render its
@@ -22,5 +23,6 @@ export const getFoodFormOptions = asyncHandler(async (_req: Request, res: Respon
     intolerances: INTOLERANCE_KEYS,
     features: FEATURE_KEYS,
     foodDiets: DIET_KEYS,
+    languages: SUPPORTED_LANGUAGES,
   });
 });

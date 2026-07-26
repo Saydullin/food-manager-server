@@ -10,8 +10,8 @@ import {
   RESTRICTION_KEYS,
   flagsFrom,
   foodInclude,
-  shapeFood,
-  type FoodView,
+  shapeFoodAdmin,
+  type AdminFoodView,
 } from './foodService';
 
 export interface ListFoodsParams {
@@ -20,10 +20,14 @@ export interface ListFoodsParams {
   pageSize: number;
 }
 
-/** Admin listing of every dish (no swipe-exclusion), optionally filtered by name. */
-export const listFoods = async ({ search, page, pageSize }: ListFoodsParams): Promise<PagedResult<FoodView>> => {
+/** Admin listing of every dish (no swipe-exclusion), optionally filtered by name in any language. */
+export const listFoods = async ({
+  search,
+  page,
+  pageSize,
+}: ListFoodsParams): Promise<PagedResult<AdminFoodView>> => {
   const where: Prisma.FoodWhereInput = search
-    ? { name: { contains: search, mode: 'insensitive' as const } }
+    ? { translations: { some: { name: { contains: search, mode: 'insensitive' as const } } } }
     : {};
 
   const [rows, total] = await Promise.all([
@@ -37,12 +41,17 @@ export const listFoods = async ({ search, page, pageSize }: ListFoodsParams): Pr
     prisma.food.count({ where }),
   ]);
 
-  return toPagedResult(rows.map(shapeFood), page, pageSize, total);
+  return toPagedResult(rows.map(shapeFoodAdmin), page, pageSize, total);
 };
 
-export interface FoodPayload {
-  name?: string;
+export interface FoodTranslationInput {
+  language: string;
+  name: string;
   description?: string | null;
+}
+
+export interface FoodPayload {
+  translations?: FoodTranslationInput[];
   cuisineCode?: string | null;
   images?: string[];
   nutrition?: {
@@ -72,14 +81,21 @@ const resolveCuisineId = async (cuisineCode: string | null | undefined): Promise
  * instead of a hardcoded sample. Tag tables are always written (even when a
  * field is omitted, absent = no tags true) so every child row exists from the start.
  */
-export const createFood = async (input: FoodPayload): Promise<FoodView> => {
-  if (!input.name) throw AppError.badRequest('name is required', 'MISSING_NAME');
+export const createFood = async (input: FoodPayload): Promise<AdminFoodView> => {
+  if (!input.translations?.length) throw AppError.badRequest('translations is required', 'MISSING_TRANSLATIONS');
 
   const cuisineId = await resolveCuisineId(input.cuisineCode);
 
   const foodId = await prisma.$transaction(async (tx) => {
-    const food = await tx.food.create({
-      data: { name: input.name!, description: input.description ?? null, cuisineId },
+    const food = await tx.food.create({ data: { cuisineId } });
+
+    await tx.foodTranslation.createMany({
+      data: input.translations!.map((t) => ({
+        foodId: food.id,
+        language: t.language,
+        name: t.name,
+        description: t.description ?? null,
+      })),
     });
 
     await tx.foodImage.createMany({
@@ -113,21 +129,28 @@ export const createFood = async (input: FoodPayload): Promise<FoodView> => {
  * child table in full (delete + recreate), matching the mobile-facing
  * setFoodPreferences/setFoodExceptions replace-in-full convention in userService.ts.
  */
-export const updateFood = async (foodId: string, input: FoodPayload): Promise<FoodView> => {
+export const updateFood = async (foodId: string, input: FoodPayload): Promise<AdminFoodView> => {
   await getFoodOrThrow(foodId);
 
   const cuisineId =
     input.cuisineCode !== undefined ? await resolveCuisineId(input.cuisineCode) : undefined;
 
   await prisma.$transaction(async (tx) => {
-    if (input.name !== undefined || input.description !== undefined || cuisineId !== undefined) {
-      await tx.food.update({
-        where: { id: foodId },
-        data: {
-          ...(input.name !== undefined ? { name: input.name } : {}),
-          ...(input.description !== undefined ? { description: input.description } : {}),
-          ...(cuisineId !== undefined ? { cuisineId } : {}),
-        },
+    if (cuisineId !== undefined) {
+      await tx.food.update({ where: { id: foodId }, data: { cuisineId } });
+    }
+
+    // Replace-in-full, same convention as images/tag arrays below — a PATCH
+    // with `translations` sends the complete set, not a partial upsert.
+    if (input.translations !== undefined) {
+      await tx.foodTranslation.deleteMany({ where: { foodId } });
+      await tx.foodTranslation.createMany({
+        data: input.translations.map((t) => ({
+          foodId,
+          language: t.language,
+          name: t.name,
+          description: t.description ?? null,
+        })),
       });
     }
 
@@ -181,8 +204,8 @@ export const deleteFood = async (foodId: string): Promise<void> => {
   await prisma.food.delete({ where: { id: foodId } });
 };
 
-const getFoodOrThrow = async (foodId: string): Promise<FoodView> => {
+const getFoodOrThrow = async (foodId: string): Promise<AdminFoodView> => {
   const row = await prisma.food.findUnique({ where: { id: foodId }, include: foodInclude });
   if (!row) throw AppError.notFound('Food not found', 'FOOD_NOT_FOUND');
-  return shapeFood(row);
+  return shapeFoodAdmin(row);
 };

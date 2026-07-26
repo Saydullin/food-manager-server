@@ -2,9 +2,14 @@ import { useState } from 'react';
 import { uploadImage } from '../lib/api';
 import type { Food, FoodFormOptions } from '../lib/types';
 
+// Must match DEFAULT_LANGUAGE in src/services/foodService.ts — every dish
+// needs a translation in this language; nothing else can fall back past it.
+export const DEFAULT_LANGUAGE = 'en';
+
 export interface FoodFormValues {
-  name: string;
-  description: string;
+  // Keyed by language code (e.g. "en", "ru"). Only languages with a non-empty
+  // name are sent as translations on submit.
+  translations: Record<string, { name: string; description: string }>;
   cuisineCode: string;
   images: string[];
   nutrition: { calories: string; servings: string; protein: string; fat: string; carbs: string };
@@ -17,8 +22,7 @@ export interface FoodFormValues {
 
 export function emptyFoodForm(): FoodFormValues {
   return {
-    name: '',
-    description: '',
+    translations: { [DEFAULT_LANGUAGE]: { name: '', description: '' } },
     cuisineCode: '',
     images: [],
     nutrition: { calories: '', servings: '', protein: '', fat: '', carbs: '' },
@@ -31,9 +35,14 @@ export function emptyFoodForm(): FoodFormValues {
 }
 
 export function foodToFormValues(food: Food): FoodFormValues {
+  const translations: FoodFormValues['translations'] = {};
+  for (const t of food.translations) {
+    translations[t.language] = { name: t.name, description: t.description ?? '' };
+  }
+  if (!translations[DEFAULT_LANGUAGE]) translations[DEFAULT_LANGUAGE] = { name: '', description: '' };
+
   return {
-    name: food.name,
-    description: food.description ?? '',
+    translations,
     cuisineCode: food.cuisine ?? '',
     images: food.images,
     nutrition: {
@@ -58,11 +67,25 @@ const toCamelList = (codes: string[]): string[] =>
 
 const num = (s: string): number | null => (s.trim() === '' ? null : Number(s));
 
+// Whether the form has enough content to submit: the default language's name
+// is required (mirrors the server's "translations must include the default
+// language" rule), other languages are optional.
+export function isFoodFormValid(values: FoodFormValues): boolean {
+  return (values.translations[DEFAULT_LANGUAGE]?.name ?? '').trim() !== '';
+}
+
 export function formValuesToPayload(values: FoodFormValues) {
   const nutritionEntries = Object.entries(values.nutrition).some(([, v]) => v.trim() !== '');
+  const translations = Object.entries(values.translations)
+    .filter(([, t]) => t.name.trim() !== '')
+    .map(([language, t]) => ({
+      language,
+      name: t.name.trim(),
+      description: t.description.trim() === '' ? null : t.description,
+    }));
+
   return {
-    name: values.name,
-    description: values.description.trim() === '' ? null : values.description,
+    translations,
     cuisineCode: values.cuisineCode === '' ? null : values.cuisineCode,
     images: values.images,
     ...(nutritionEntries
@@ -120,6 +143,8 @@ function TagCheckboxes({
   );
 }
 
+const LANGUAGE_LABELS: Record<string, string> = { en: 'English', ru: 'Russian' };
+
 export function FoodForm({
   options,
   values,
@@ -139,9 +164,20 @@ export function FoodForm({
 }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const languages = options.languages.length ? options.languages : [DEFAULT_LANGUAGE];
+  const [activeLanguage, setActiveLanguage] = useState(DEFAULT_LANGUAGE);
 
   const set = <K extends keyof FoodFormValues>(key: K, value: FoodFormValues[K]) =>
     onChange({ ...values, [key]: value });
+
+  const setTranslation = (language: string, field: 'name' | 'description', value: string) =>
+    onChange({
+      ...values,
+      translations: {
+        ...values.translations,
+        [language]: { ...(values.translations[language] ?? { name: '', description: '' }), [field]: value },
+      },
+    });
 
   const toggleTag = (category: keyof FoodFormValues, key: string) => {
     const current = values[category] as string[];
@@ -167,20 +203,46 @@ export function FoodForm({
 
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="grid grid-cols-2 gap-4">
-        <label className="col-span-2 block text-sm">
-          <span className="mb-1 block font-medium text-neutral-700 dark:text-neutral-300">Name</span>
+      <div className="mb-4 flex gap-1 border-b border-neutral-200 dark:border-neutral-800">
+        {languages.map((lang) => {
+          const hasName = (values.translations[lang]?.name ?? '').trim() !== '';
+          return (
+            <button
+              key={lang}
+              type="button"
+              onClick={() => setActiveLanguage(lang)}
+              className={`rounded-t-md px-3 py-1.5 text-sm font-medium ${
+                activeLanguage === lang
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
+                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+              }`}
+            >
+              {LANGUAGE_LABELS[lang] ?? lang}
+              {lang === DEFAULT_LANGUAGE ? ' *' : hasName ? '' : ' (empty)'}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label className="block text-sm sm:col-span-2">
+          <span className="mb-1 block font-medium text-neutral-700 dark:text-neutral-300">
+            Name ({LANGUAGE_LABELS[activeLanguage] ?? activeLanguage})
+            {activeLanguage === DEFAULT_LANGUAGE && <span className="text-red-600"> *</span>}
+          </span>
           <input
-            value={values.name}
-            onChange={(e) => set('name', e.target.value)}
+            value={values.translations[activeLanguage]?.name ?? ''}
+            onChange={(e) => setTranslation(activeLanguage, 'name', e.target.value)}
             className="w-full rounded-md border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-800"
           />
         </label>
-        <label className="col-span-2 block text-sm">
-          <span className="mb-1 block font-medium text-neutral-700 dark:text-neutral-300">Description</span>
+        <label className="block text-sm sm:col-span-2">
+          <span className="mb-1 block font-medium text-neutral-700 dark:text-neutral-300">
+            Description ({LANGUAGE_LABELS[activeLanguage] ?? activeLanguage})
+          </span>
           <textarea
-            value={values.description}
-            onChange={(e) => set('description', e.target.value)}
+            value={values.translations[activeLanguage]?.description ?? ''}
+            onChange={(e) => setTranslation(activeLanguage, 'description', e.target.value)}
             rows={3}
             className="w-full rounded-md border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-800"
           />
@@ -223,7 +285,7 @@ export function FoodForm({
         {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
       </div>
 
-      <div className="mt-4 grid grid-cols-5 gap-3">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
         {(['calories', 'servings', 'protein', 'fat', 'carbs'] as const).map((field) => (
           <label key={field} className="block text-sm">
             <span className="mb-1 block capitalize text-neutral-700 dark:text-neutral-300">{field}</span>
@@ -274,7 +336,7 @@ export function FoodForm({
         <button
           type="button"
           onClick={onSubmit}
-          disabled={submitting || !values.name.trim()}
+          disabled={submitting || !isFoodFormValid(values)}
           className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-neutral-900"
         >
           {submitting ? 'Saving…' : submitLabel}

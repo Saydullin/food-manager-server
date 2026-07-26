@@ -2,13 +2,19 @@ import type { ComplaintStatus, ComplaintTargetType, Prisma } from '@prisma/clien
 import { prisma } from '../config/prisma';
 import { AppError } from '../utils/errors';
 import { toPagedResult, type PagedResult } from '../utils/pagination';
+import { DEFAULT_LANGUAGE } from './foodService';
 
 const complaintInclude = {
   reporter: { select: { id: true, username: true } },
   targetUser: { select: { id: true, username: true } },
-  targetFood: { select: { id: true, name: true } },
+  targetFood: { select: { id: true, translations: { select: { language: true, name: true } } } },
   resolvedByAdmin: { select: { id: true, name: true } },
 } as const;
+
+// The target dish's name in its default language (falling back to whichever
+// translation exists), since Food itself no longer carries a bare `name`.
+const targetFoodName = (translations: { language: string; name: string }[]): string =>
+  translations.find((t) => t.language === DEFAULT_LANGUAGE)?.name ?? translations[0]?.name ?? '';
 
 export interface ComplaintView {
   id: string;
@@ -32,9 +38,14 @@ const shapeComplaint = (row: {
   resolvedAt: Date | null;
   reporter: { id: string; username: string };
   targetUser: { id: string; username: string } | null;
-  targetFood: { id: string; name: string } | null;
+  targetFood: { id: string; translations: { language: string; name: string }[] } | null;
   resolvedByAdmin: { id: string; name: string } | null;
-}): ComplaintView => row;
+}): ComplaintView => ({
+  ...row,
+  targetFood: row.targetFood
+    ? { id: row.targetFood.id, name: targetFoodName(row.targetFood.translations) }
+    : null,
+});
 
 export interface FileComplaintInput {
   targetType: ComplaintTargetType;

@@ -42,8 +42,8 @@ export function UsersPage() {
   });
 
   return (
-    <div className="grid grid-cols-3 gap-6">
-      <div className="col-span-2">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="md:col-span-2">
         <h2 className="mb-6 text-2xl font-semibold">Users</h2>
         <input
           value={search}

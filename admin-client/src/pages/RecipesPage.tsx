@@ -6,12 +6,18 @@ import { usePagination } from '../lib/usePagination';
 import { PaginationControls } from '../components/PaginationControls';
 import type { Food, FoodFormOptions, Page } from '../lib/types';
 import {
+  DEFAULT_LANGUAGE,
   FoodForm,
   emptyFoodForm,
   foodToFormValues,
   formValuesToPayload,
   type FoodFormValues,
 } from '../components/FoodForm';
+
+// The name shown in the recipe table: default language, falling back to
+// whatever translation exists (mirrors the server's shapeFood fallback).
+const displayName = (food: Food): string =>
+  food.translations.find((t) => t.language === DEFAULT_LANGUAGE)?.name ?? food.translations[0]?.name ?? '';
 
 export function RecipesPage() {
   const queryClient = useQueryClient();
@@ -79,14 +85,14 @@ export function RecipesPage() {
   };
 
   const handleDelete = (food: Food) => {
-    if (confirm(`Delete "${food.name}"? This cannot be undone.`)) {
+    if (confirm(`Delete "${displayName(food)}"? This cannot be undone.`)) {
       deleteMutation.mutate(food.id);
     }
   };
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-semibold">Recipes</h2>
         {editing === null && (
           <button
@@ -142,7 +148,7 @@ export function RecipesPage() {
                       <div className="h-10 w-10 rounded bg-neutral-200 dark:bg-neutral-800" />
                     )}
                   </td>
-                  <td className="px-4 py-2 font-medium">{food.name}</td>
+                  <td className="px-4 py-2 font-medium">{displayName(food)}</td>
                   <td className="px-4 py-2 text-neutral-500">{food.cuisine ?? '—'}</td>
                   <td className="px-4 py-2 text-neutral-500">{food.nutrition?.calories ?? '—'}</td>
                   <td className="px-4 py-2 text-right">

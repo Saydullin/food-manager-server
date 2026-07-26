@@ -19,9 +19,24 @@ const limit = z.coerce
 // the service. Optional — absent means "start from the top".
 const cursor = z.string().trim().min(1).max(512).optional();
 
+// The language a client wants dish content in (BCP-47 tag, e.g. "en", "ru").
+// Optional — the service falls back to the default language when absent or
+// when a dish has no translation for it.
+const lang = z
+  .string()
+  .trim()
+  .regex(/^[a-zA-Z]{2,3}(-[a-zA-Z]{2,4})?$/, 'lang must be a BCP-47 tag, e.g. "en" or "en-US"')
+  .transform((s) => s.toLowerCase())
+  .optional();
+
 export const feedQuerySchema = z.object({
   limit,
   cursor,
+  lang,
+});
+
+export const foodDetailQuerySchema = z.object({
+  lang,
 });
 
 // The three swipe verdicts, mirroring the FoodInteractionAction enum in schema.prisma.
@@ -85,4 +100,5 @@ export const listInteractionsQuerySchema = z.object({
   action: action.optional(),
   limit,
   cursor,
+  lang,
 });

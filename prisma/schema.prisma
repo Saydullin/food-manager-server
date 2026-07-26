@@ -282,8 +282,6 @@ model EmailVerificationToken {
 /// but none are modeled yet since none were requested.
 model Food {
   id          String   @id @default(uuid()) @db.Uuid
-  name        String
-  description String?
   // Legacy single "cover" image. The 1..7-image gallery lives in FoodImage; this
   // stays as an optional cover/fallback (the API's `images` array falls back to it
   // when the food has no FoodImage rows yet).
@@ -296,6 +294,10 @@ model Food {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Per-language name/description. Language-agnostic data (cuisine, nutrition,
+  // allergens, images) stays directly on Food so it isn't duplicated per
+  // language; only the text content is translated.
+  translations        FoodTranslation[]
   allergens           FoodAllergens?
   dietaryRestrictions FoodDietaryRestrictions?
   intolerances        FoodIntolerances?
@@ -311,6 +313,26 @@ model Food {
   @@index([createdAt, id])
   @@index([cuisineId])
   @@map("foods")
+}
+
+/// A dish's name/description in one language. A dish has one row per supported
+/// language (at least one, its "default" language); the client requests a
+/// `lang` and the server falls back to the default when a translation is
+/// missing, so a partially-translated catalog never 404s.
+model FoodTranslation {
+  id     String @id @default(uuid()) @db.Uuid
+  foodId String @db.Uuid
+  food   Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  // BCP-47 language tag (e.g. "en", "ru"), same convention as UserSettings.language.
+  language    String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([foodId, language])
+  @@index([foodId])
+  @@map("food_translations")
 }
 
 /// Allergen tags for a dish. One row per food, one boolean column per allergen.

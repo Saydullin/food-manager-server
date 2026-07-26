@@ -8,6 +8,7 @@ export const getFeed = asyncHandler(async (req: AuthenticatedRequest, res: Respo
   const page = await foodService.getFeed(req.auth!.userId, {
     limit: req.query.limit as unknown as number,
     cursor: req.query.cursor as unknown as string | undefined,
+    lang: req.query.lang as unknown as string | undefined,
   });
   res.status(200).json(page);
 });
@@ -18,13 +19,14 @@ export const listMyInteractions = asyncHandler(async (req: AuthenticatedRequest,
     action: req.query.action as unknown as foodService.ListInteractionsParams['action'],
     limit: req.query.limit as unknown as number,
     cursor: req.query.cursor as unknown as string | undefined,
+    lang: req.query.lang as unknown as string | undefined,
   });
   res.status(200).json(page);
 });
 
 // GET /foods/:foodId — full detail for a single dish.
 export const getFood = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const food = await foodService.getFood(req.params.foodId);
+  const food = await foodService.getFood(req.params.foodId, req.query.lang as unknown as string | undefined);
   res.status(200).json({ food });
 });
 

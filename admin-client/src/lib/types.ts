@@ -22,10 +22,15 @@ export interface FoodTags {
   diets: string[];
 }
 
-export interface Food {
-  id: string;
+export interface FoodTranslation {
+  language: string;
   name: string;
   description: string | null;
+}
+
+export interface Food {
+  id: string;
+  translations: FoodTranslation[];
   cuisine: string | null;
   images: string[];
   nutrition: FoodNutrition | null;
@@ -42,6 +47,7 @@ export interface FoodFormOptions {
   intolerances: string[];
   features: string[];
   foodDiets: string[];
+  languages: string[];
 }
 
 export interface AdminUserListItem {
