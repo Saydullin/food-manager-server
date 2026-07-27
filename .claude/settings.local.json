@@ -4,7 +4,9 @@
       "Bash(git -C e:/food-manager-server status)",
       "Bash(npm --version)",
       "Bash(npx --version)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(npx prisma *)",
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")"
     ]
   }
 }

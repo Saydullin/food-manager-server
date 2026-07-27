@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { uploadImage } from '../lib/api';
 import type { Food, FoodFormOptions } from '../lib/types';
+import { ArticleEditor } from './ArticleEditor';
+import { IngredientsEditor, type IngredientLine } from './IngredientsEditor';
 
 // Must match DEFAULT_LANGUAGE in src/services/foodService.ts — every dish
 // needs a translation in this language; nothing else can fall back past it.
@@ -8,8 +10,9 @@ export const DEFAULT_LANGUAGE = 'en';
 
 export interface FoodFormValues {
   // Keyed by language code (e.g. "en", "ru"). Only languages with a non-empty
-  // name are sent as translations on submit.
-  translations: Record<string, { name: string; description: string }>;
+  // name are sent as translations on submit. `content` is the recipe article
+  // body (HTML from the rich-text editor).
+  translations: Record<string, { name: string; description: string; content: string }>;
   cuisineCode: string;
   images: string[];
   nutrition: { calories: string; servings: string; protein: string; fat: string; carbs: string };
@@ -18,11 +21,13 @@ export interface FoodFormValues {
   intolerances: string[];
   features: string[];
   diets: string[];
+  // Language-agnostic, like nutrition/tags — one ingredient list for the recipe.
+  ingredients: IngredientLine[];
 }
 
 export function emptyFoodForm(): FoodFormValues {
   return {
-    translations: { [DEFAULT_LANGUAGE]: { name: '', description: '' } },
+    translations: { [DEFAULT_LANGUAGE]: { name: '', description: '', content: '' } },
     cuisineCode: '',
     images: [],
     nutrition: { calories: '', servings: '', protein: '', fat: '', carbs: '' },
@@ -31,15 +36,18 @@ export function emptyFoodForm(): FoodFormValues {
     intolerances: [],
     features: [],
     diets: [],
+    ingredients: [],
   };
 }
 
 export function foodToFormValues(food: Food): FoodFormValues {
   const translations: FoodFormValues['translations'] = {};
   for (const t of food.translations) {
-    translations[t.language] = { name: t.name, description: t.description ?? '' };
+    translations[t.language] = { name: t.name, description: t.description ?? '', content: t.content ?? '' };
   }
-  if (!translations[DEFAULT_LANGUAGE]) translations[DEFAULT_LANGUAGE] = { name: '', description: '' };
+  if (!translations[DEFAULT_LANGUAGE]) {
+    translations[DEFAULT_LANGUAGE] = { name: '', description: '', content: '' };
+  }
 
   return {
     translations,
@@ -57,6 +65,13 @@ export function foodToFormValues(food: Food): FoodFormValues {
     intolerances: toCamelList(food.tags.intolerances),
     features: toCamelList(food.tags.features),
     diets: toCamelList(food.tags.diets),
+    ingredients: food.ingredients.map((i) => ({
+      key: i.id,
+      ingredientId: i.ingredientId,
+      name: i.name,
+      amount: i.amount.toString(),
+      unit: i.unit,
+    })),
   };
 }
 
@@ -82,6 +97,17 @@ export function formValuesToPayload(values: FoodFormValues) {
       language,
       name: t.name.trim(),
       description: t.description.trim() === '' ? null : t.description,
+      content: t.content.trim() === '' ? null : t.content,
+    }));
+
+  // Drop incomplete rows (no name, or an amount that doesn't parse to a
+  // positive number) rather than sending something the server would reject.
+  const ingredients = values.ingredients
+    .filter((line) => line.name.trim() !== '' && num(line.amount) !== null && num(line.amount)! > 0)
+    .map((line) => ({
+      ...(line.ingredientId ? { ingredientId: line.ingredientId } : { name: line.name.trim() }),
+      amount: num(line.amount)!,
+      unit: line.unit,
     }));
 
   return {
@@ -104,15 +130,16 @@ export function formValuesToPayload(values: FoodFormValues) {
     intolerances: values.intolerances,
     features: values.features,
     diets: values.diets,
+    ingredients,
   };
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  allergens: 'Allergens',
-  dietaryRestrictions: 'Dietary restrictions',
-  intolerances: 'Intolerances',
-  features: 'Features',
-  diets: 'Diets',
+  allergens: 'Аллергены',
+  dietaryRestrictions: 'Диетические ограничения',
+  intolerances: 'Непереносимости',
+  features: 'Особенности',
+  diets: 'Диеты',
 };
 
 function TagCheckboxes({
@@ -170,12 +197,15 @@ export function FoodForm({
   const set = <K extends keyof FoodFormValues>(key: K, value: FoodFormValues[K]) =>
     onChange({ ...values, [key]: value });
 
-  const setTranslation = (language: string, field: 'name' | 'description', value: string) =>
+  const setTranslation = (language: string, field: 'name' | 'description' | 'content', value: string) =>
     onChange({
       ...values,
       translations: {
         ...values.translations,
-        [language]: { ...(values.translations[language] ?? { name: '', description: '' }), [field]: value },
+        [language]: {
+          ...(values.translations[language] ?? { name: '', description: '', content: '' }),
+          [field]: value,
+        },
       },
     });
 
@@ -330,6 +360,24 @@ export function FoodForm({
           selected={values.diets}
           onToggle={(k) => toggleTag('diets', k)}
         />
+      </div>
+
+      <div className="mt-4 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+        <span className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+          Content ({LANGUAGE_LABELS[activeLanguage] ?? activeLanguage})
+        </span>
+        <ArticleEditor
+          value={values.translations[activeLanguage]?.content ?? ''}
+          onChange={(html) => setTranslation(activeLanguage, 'content', html)}
+          placeholder="Write the full recipe article — steps, tips, story…"
+        />
+
+        <div className="mt-4">
+          <IngredientsEditor
+            lines={values.ingredients}
+            onChange={(ingredients) => set('ingredients', ingredients)}
+          />
+        </div>
       </div>
 
       <div className="mt-4 flex gap-2">

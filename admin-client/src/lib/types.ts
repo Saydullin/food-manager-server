@@ -26,6 +26,15 @@ export interface FoodTranslation {
   language: string;
   name: string;
   description: string | null;
+  content: string | null;
+}
+
+export interface FoodIngredient {
+  id: string;
+  ingredientId: string;
+  name: string;
+  amount: number;
+  unit: string;
 }
 
 export interface Food {
@@ -35,8 +44,14 @@ export interface Food {
   images: string[];
   nutrition: FoodNutrition | null;
   tags: FoodTags;
+  ingredients: FoodIngredient[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Ingredient {
+  id: string;
+  name: string;
 }
 
 export interface FoodFormOptions {

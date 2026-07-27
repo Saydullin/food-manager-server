@@ -235,7 +235,7 @@ model RecoveryToken {
   // Short numeric code path (email-code login / restore access). Hashed at rest like tokenHash.
   codeHash      String?
   codeExpiresAt DateTime?
-  // Failed-attempt counter — a 6-digit code has a tiny keyspace, so this bounds guessing.
+  // Failed-attempt counter — a 4-digit code has a tiny keyspace, so this bounds guessing.
   codeAttempts  Int       @default(0)
   used          Boolean   @default(false)
   createdAt     DateTime  @default(now())
@@ -261,7 +261,7 @@ model EmailVerificationToken {
   // tokenHash. Nullable so pre-migration rows (link-only) remain valid.
   codeHash      String?
   codeExpiresAt DateTime?
-  // Failed-attempt counter, since a 6-digit code has a much smaller keyspace than the
+  // Failed-attempt counter, since a 4-digit code has a much smaller keyspace than the
   // link token — this bounds brute-force guesses before the code is invalidated.
   codeAttempts  Int       @default(0)
   used          Boolean   @default(false)
@@ -307,6 +307,7 @@ model Food {
   images              FoodImage[]
   interactions        FoodInteraction[]
   complaints          Complaint[]
+  ingredients         FoodIngredient[]
 
   // The feed pages by (createdAt, id) and excludes already-swiped dishes; this
   // composite index keeps that ordered scan efficient.
@@ -327,6 +328,11 @@ model FoodTranslation {
   language    String
   name        String
   description String?
+  // The recipe's full article body (instructions/steps) for this language,
+  // authored via the admin panel's rich-text editor. Stored as HTML. Separate
+  // from `description` (a short blurb) the same way a blog post's excerpt
+  // differs from its body.
+  content     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -459,6 +465,70 @@ model FoodImage {
   @@unique([foodId, position])
   @@index([foodId])
   @@map("food_images")
+}
+
+/// The catalog of selectable ingredients (e.g. "Tomato", "Olive oil"). Unlike
+/// Diet/Cuisine, this is authored ad hoc from the admin recipe form itself (an
+/// admin can type a new ingredient name inline while building a recipe), not
+/// pre-seeded — so it has no fixed `code`, just a user-authored name per
+/// language (see IngredientTranslation). Shared across recipes: one row per
+/// distinct ingredient, referenced by many FoodIngredient rows.
+model Ingredient {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  translations    IngredientTranslation[]
+  foodIngredients FoodIngredient[]
+
+  @@map("ingredients")
+}
+
+/// An ingredient's name in one language. Mirrors FoodTranslation exactly — an
+/// ingredient has one row per language it's been named in (at least one), and
+/// reads fall back the same way (requested language -> default language ->
+/// whatever exists), so a partially-translated catalog never breaks a recipe read.
+model IngredientTranslation {
+  id           String     @id @default(uuid()) @db.Uuid
+  ingredientId String     @db.Uuid
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  // BCP-47 language tag, same convention as FoodTranslation.language.
+  language     String
+  name         String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([ingredientId, language])
+  @@index([ingredientId])
+  // Backs both the admin search-by-name-in-any-language query and the
+  // resolveIngredientId "same name, same language" reuse lookup.
+  @@index([language, name])
+  @@map("ingredient_translations")
+}
+
+/// One line of a recipe's ingredient list: a catalog ingredient plus how much
+/// of it the recipe uses. `unit` is free-text (e.g. "g", "ml", "pcs") rather
+/// than an enum since recipes reasonably mix weight/volume/count units.
+/// `position` preserves the admin-authored ordering, same convention as
+/// FoodImage.position. Terminal table — references Food and Ingredient,
+/// nothing references it.
+model FoodIngredient {
+  id           String     @id @default(uuid()) @db.Uuid
+  foodId       String     @db.Uuid
+  food         Food       @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  ingredientId String     @db.Uuid
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  amount       Float
+  unit         String     @default("g")
+  position     Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  // One line per (recipe, ingredient) — re-adding the same ingredient updates
+  // its amount/unit instead of duplicating the row.
+  @@unique([foodId, ingredientId])
+  @@index([foodId])
+  @@index([ingredientId])
+  @@map("food_ingredients")
 }
 
 /// The server-owned catalog of cuisines a dish can belong to (e.g. "ITALIAN").

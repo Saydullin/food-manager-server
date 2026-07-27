@@ -57,7 +57,7 @@ authRouter.post(
 );
 authRouter.post('/recovery/confirm', validateBody(recoveryConfirmSchema), authController.confirmRecovery);
 
-// Login / restore access by username + email, confirmed with an emailed 6-digit code.
+// Login / restore access by username + email, confirmed with an emailed 4-digit code.
 // request-code shares the recovery rate limiter (email-sending); confirm-code has its own
 // (code-guessing), matching the /email/verify-code split.
 authRouter.post(

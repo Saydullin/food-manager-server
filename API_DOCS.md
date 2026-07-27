@@ -49,14 +49,14 @@ Body: `{ refreshToken }` → 200 `{ message }`
 
 ### POST /auth/email/add  🔒
 Body: `{ email }` → 200 `{ message }` (sets emailVerified=false; logs both a verification link
-*and* a 6-digit numeric code to the console — either one confirms the same pending email).
+*and* a 4-digit numeric code to the console — either one confirms the same pending email).
 Works right after registration or any time later to add/change the address on file.
 
 ### GET /auth/email/verify?token=...
 → 200 `{ message }`
 
 ### POST /auth/email/verify-code  🔒
-Body: `{ code }` (6 digits) → 200 `{ message }`. Alternative to the link above for clients that
+Body: `{ code }` (4 digits) → 200 `{ message }`. Alternative to the link above for clients that
 can't open a deep link — verifies the most recent pending email for the authenticated user.
 Code expires after `EMAIL_CODE_TTL` seconds (default 600 = 10 min) and is invalidated after
 `EMAIL_CODE_MAX_ATTEMPTS` wrong guesses (default 5); request a new one via `/auth/email/add`.
@@ -71,7 +71,7 @@ Body: `{ recoveryToken, newPublicKey, deviceLabel? }` → 200 `{ device, accessT
 ### POST /auth/recovery/request-code
 Login by **username + email**, the fallback path when `/challenge` + `/verify` doesn't work (device
 lost/reset, fresh install, etc.). Body: `{ username, email }` → 200 generic `{ message }` always
-(anti-enumeration — same response whether or not the account/email matched). Only mails a 6-digit
+(anti-enumeration — same response whether or not the account/email matched). Only mails a 4-digit
 code when the username exists **and** the submitted email matches the account's **verified**
 on-file address (case-insensitive); a mismatched email never receives a code and never lets the
 client in. Code expires after `RECOVERY_CODE_TTL` seconds (default 600 = 10 min).
@@ -175,7 +175,8 @@ one language:
   "id": "uuid",
   "name": "Spicy Tuna Roll",
   "description": "…",                 // nullable
-  "language": "en",                   // the language name/description actually resolved to
+  "content": "<p>…</p>",               // nullable; the full recipe article/instructions, as HTML
+  "language": "en",                   // the language name/description/content actually resolved to
   "availableLanguages": ["en", "ru"], // every language this dish is translated into
   "cuisine": "JAPANESE",              // nullable; a code from GET /cuisines
   "images": ["https://…1.jpg", …],    // 1..7, ordered (first = cover); [] if none
@@ -190,6 +191,9 @@ one language:
     "features": ["SPICY", "HIGH_PROTEIN", "LOW_FAT"],
     "diets": []
   },
+  "ingredients": [                    // language-agnostic; ordered as authored
+    { "id": "uuid", "ingredientId": "uuid", "name": "Tuna", "amount": 150, "unit": "g" }
+  ],
   "createdAt": "…", "updatedAt": "…"
 }
 ```
@@ -276,25 +280,36 @@ translation at once (admins author all languages in one form), not one resolved 
 {
   "id": "uuid",
   "translations": [
-    { "language": "en", "name": "Spicy Tuna Roll", "description": "…" },
-    { "language": "ru", "name": "Острый ролл с тунцом", "description": "…" }
+    { "language": "en", "name": "Spicy Tuna Roll", "description": "…", "content": "<p>…</p>" },
+    { "language": "ru", "name": "Острый ролл с тунцом", "description": "…", "content": "<p>…</p>" }
   ],
   "cuisine": "JAPANESE", "images": […], "nutrition": {…}, "tags": {…},
+  "ingredients": [
+    { "id": "uuid", "ingredientId": "uuid", "name": "Tuna", "amount": 150, "unit": "g" }
+  ],
   "createdAt": "…", "updatedAt": "…"
 }
 ```
 
 - `translations` — at least one entry, and **must include the default language `"en"`**; every
   other field can fall back to it, so it's the one language that must always exist.
-  Each entry: `{ language, name, description? }`. `language` is a BCP-47 tag (lowercased,
-  e.g. `"en"`, `"ru"`, `"en-us"`); `name` is required, `description` optional/nullable.
+  Each entry: `{ language, name, description?, content? }`. `language` is a BCP-47 tag (lowercased,
+  e.g. `"en"`, `"ru"`, `"en-us"`); `name` is required, `description`/`content` optional/nullable.
+  `content` is the recipe article body (HTML from the admin panel's rich-text editor) — separate
+  from the short `description`.
+- `ingredients` — language-agnostic (like nutrition/tags), ordered as authored. Each entry:
+  `{ ingredientId?, name?, amount, unit }` — either reference an existing catalog ingredient by
+  `ingredientId`, or author a new one inline with `name` (created in the catalog on save, or reused
+  if a case-insensitive match already exists). `amount` must be `> 0`; `unit` is free text
+  (e.g. `"g"`, `"ml"`, `"pcs"`), defaulting to `"g"`. Sending `ingredients` **replaces the whole
+  list** (same full-replacement convention as `images`/tag arrays).
 
 ### GET /admin/foods?search=&page=&pageSize=  🔑
 Every dish (no swipe-exclusion). `search` matches `name` in **any** language, case-insensitive.
 → 200 `{ items: [dish], page, pageSize, total, totalPages }`
 
 ### POST /admin/foods  🔑
-Creates a dish. Body: `{ translations, cuisineCode?, images?, nutrition?, allergens?, dietaryRestrictions?, intolerances?, features?, diets? }`.
+Creates a dish. Body: `{ translations, cuisineCode?, images?, nutrition?, allergens?, dietaryRestrictions?, intolerances?, features?, diets?, ingredients? }`.
 Missing/empty `translations`, or missing the default-language entry, → `400`.
 → 201 `{ food }`
 
@@ -305,7 +320,7 @@ and it must still satisfy the "includes default language" rule.
 → 200 `{ food }`
 
 ### DELETE /admin/foods/:foodId  🔑
-Deletes a dish (and its translations/images/tags/interactions, via cascade).
+Deletes a dish (and its translations/images/tags/ingredients/interactions, via cascade).
 → 204
 
 ### GET /admin/meta/food-form-options  🔑
@@ -313,6 +328,22 @@ Catalogs + fixed tag-code lists the admin recipe form needs, including `language
 languages the admin UI offers by default (currently `["en", "ru"]`; the API itself accepts any
 BCP-47 tag, this list is just what the form's language tabs show).
 → 200 `{ cuisines, diets, allergens, dietaryRestrictions, intolerances, features, foodDiets, languages }`
+
+## Admin: ingredient catalog  🔑
+
+The shared ingredient catalog recipes' `ingredients` lines reference. Admins normally add
+ingredients inline while building a recipe (see `POST /admin/foods` above); these routes back that
+picker and let an ingredient be added to the catalog directly.
+
+### GET /admin/ingredients?search=  🔑
+Lists catalog ingredients, optionally filtered by name (case-insensitive substring match), up to 200
+results, alphabetical.
+→ 200 `{ ingredients: [{ id, name }] }`
+
+### POST /admin/ingredients  🔑
+Adds a new ingredient to the catalog. `name` must be unique (case-sensitive) → `409 INGREDIENT_EXISTS`
+if it already exists.
+→ 201 `{ ingredient: { id, name } }`
 
 ## Admin: complaints  🔑
 Moderation queue for reports filed via `POST /complaints`. A complaint targets either a user or a

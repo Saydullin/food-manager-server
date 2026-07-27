@@ -362,7 +362,7 @@
               "path": ["auth", "email", "verify-code"]
             },
             "body": { "mode": "raw", "raw": "{\n  \"code\": \"{{emailVerificationCode}}\"\n}" },
-            "description": "Requires emailVerificationCode to be set manually from the server console log (see 2.1) — a 6-digit code as an alternative to clicking the link in 2.2, for clients that can't open a deep link. Verifies the most recent pending email for the authenticated user. The code expires after EMAIL_CODE_TTL seconds (default 10 min) and locks out after EMAIL_CODE_MAX_ATTEMPTS wrong guesses (default 5) — request a fresh one via 2.1 if that happens."
+            "description": "Requires emailVerificationCode to be set manually from the server console log (see 2.1) — a 4-digit code as an alternative to clicking the link in 2.2, for clients that can't open a deep link. Verifies the most recent pending email for the authenticated user. The code expires after EMAIL_CODE_TTL seconds (default 10 min) and locks out after EMAIL_CODE_MAX_ATTEMPTS wrong guesses (default 5) — request a fresh one via 2.1 if that happens."
           }
         }
       ]

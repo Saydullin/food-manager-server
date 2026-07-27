@@ -8,6 +8,6 @@ export const generateRandomToken = (bytes = 32): string =>
 export const hashToken = (token: string): string =>
   createHash('sha256').update(token).digest('hex');
 
-/** A random 6-digit numeric code, zero-padded (e.g. "004821"), for email verification. */
+/** A random 4-digit numeric code, zero-padded (e.g. "0482"), for email verification. */
 export const generateVerificationCode = (): string =>
-  randomInt(0, 1_000_000).toString().padStart(6, '0');
+  randomInt(0, 10_000).toString().padStart(4, '0');

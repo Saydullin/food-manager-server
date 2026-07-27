@@ -4,6 +4,7 @@ import { AppError } from '../utils/errors';
 import { toPagedResult, type PagedResult } from '../utils/pagination';
 import {
   ALLERGEN_KEYS,
+  DEFAULT_LANGUAGE,
   DIET_KEYS,
   FEATURE_KEYS,
   INTOLERANCE_KEYS,
@@ -13,6 +14,7 @@ import {
   shapeFoodAdmin,
   type AdminFoodView,
 } from './foodService';
+import { resolveIngredientId } from './ingredientService';
 
 export interface ListFoodsParams {
   search?: string;
@@ -48,6 +50,18 @@ export interface FoodTranslationInput {
   language: string;
   name: string;
   description?: string | null;
+  content?: string | null;
+}
+
+// A recipe ingredient line as authored from the admin form: either an existing
+// catalog ingredient (`ingredientId`) or a new one to create inline (`name`,
+// authored in `language` — the form's currently active language tab).
+export interface FoodIngredientInput {
+  ingredientId?: string;
+  name?: string;
+  language?: string;
+  amount: number;
+  unit: string;
 }
 
 export interface FoodPayload {
@@ -66,7 +80,30 @@ export interface FoodPayload {
   intolerances?: string[];
   features?: string[];
   diets?: string[];
+  ingredients?: FoodIngredientInput[];
 }
+
+// Resolves each ingredient line to a catalog id (creating new ones inline) and
+// replaces the recipe's ingredient list in full, same replace-in-full
+// convention as images/translations below. Position preserves authored order.
+const replaceIngredients = async (
+  tx: Prisma.TransactionClient,
+  foodId: string,
+  ingredients: FoodIngredientInput[],
+): Promise<void> => {
+  await tx.foodIngredient.deleteMany({ where: { foodId } });
+  for (let position = 0; position < ingredients.length; position++) {
+    const line = ingredients[position]!;
+    const ingredientId = await resolveIngredientId(tx, {
+      ingredientId: line.ingredientId,
+      name: line.name,
+      language: line.language ?? DEFAULT_LANGUAGE,
+    });
+    await tx.foodIngredient.create({
+      data: { foodId, ingredientId, amount: line.amount, unit: line.unit, position },
+    });
+  }
+};
 
 const resolveCuisineId = async (cuisineCode: string | null | undefined): Promise<string | null> => {
   if (!cuisineCode) return null;
@@ -95,12 +132,17 @@ export const createFood = async (input: FoodPayload): Promise<AdminFoodView> => 
         language: t.language,
         name: t.name,
         description: t.description ?? null,
+        content: t.content ?? null,
       })),
     });
 
     await tx.foodImage.createMany({
       data: (input.images ?? []).map((url, position) => ({ foodId: food.id, url, position })),
     });
+
+    if (input.ingredients) {
+      await replaceIngredients(tx, food.id, input.ingredients);
+    }
 
     if (input.nutrition) {
       await tx.foodNutrition.create({ data: { foodId: food.id, ...input.nutrition } });
@@ -150,6 +192,7 @@ export const updateFood = async (foodId: string, input: FoodPayload): Promise<Ad
           language: t.language,
           name: t.name,
           description: t.description ?? null,
+          content: t.content ?? null,
         })),
       });
     }
@@ -159,6 +202,10 @@ export const updateFood = async (foodId: string, input: FoodPayload): Promise<Ad
       await tx.foodImage.createMany({
         data: input.images.map((url, position) => ({ foodId, url, position })),
       });
+    }
+
+    if (input.ingredients !== undefined) {
+      await replaceIngredients(tx, foodId, input.ingredients);
     }
 
     if (input.nutrition !== undefined) {

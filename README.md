@@ -10,7 +10,7 @@ Express, TypeScript, and Prisma (PostgreSQL).
 - **Passwordless device auth** — devices generate an Ed25519/RSA keypair in the
   Android Keystore; only the public key ever reaches the server. Login is a
   challenge/signature handshake (`/auth/challenge` + `/auth/verify`), no passwords.
-- **Optional email recovery** — link- or 6-digit-code based account recovery if a
+- **Optional email recovery** — link- or 4-digit-code based account recovery if a
   device is lost, with anti-enumeration responses and attempt limits.
 - **Food catalog** — foods with nutrition, allergens, dietary restrictions,
   intolerances, features, cuisines, and diets.

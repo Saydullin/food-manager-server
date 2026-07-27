@@ -8,3 +8,10 @@ body {
   margin: 0;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
 }
+
+/* Article editor placeholder — shown only while the contentEditable body is empty. */
+.article-editor-body:empty::before {
+  content: attr(data-placeholder);
+  color: #a3a3a3;
+  pointer-events: none;
+}

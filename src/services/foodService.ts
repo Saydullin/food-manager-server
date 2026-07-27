@@ -2,6 +2,7 @@ import { Prisma, type FoodDislikeReason, type FoodInteractionAction } from '@pri
 import { prisma } from '../config/prisma';
 import { AppError } from '../utils/errors';
 import { decodeCursor, encodeCursor } from '../utils/cursor';
+import { pickByLanguage } from '../utils/i18n';
 import { ensureUserExists } from './userService';
 
 // ---------------------------------------------------------------------------
@@ -40,28 +41,51 @@ export interface FoodTranslationView {
   language: string;
   name: string;
   description: string | null;
+  content: string | null;
+}
+
+// One ingredient line on a recipe: the catalog ingredient's id/name plus how
+// much of it this recipe uses. `name` resolves to the requested language, same
+// fallback rule as the dish's own name/description/content.
+export interface FoodIngredientView {
+  id: string;
+  ingredientId: string;
+  name: string;
+  amount: number;
+  unit: string;
+}
+
+// The admin-panel shape for an ingredient line: every translation the catalog
+// ingredient has, rather than one resolved language, so the admin-client can
+// tell which languages are missing without a second round trip.
+export interface AdminFoodIngredientView extends FoodIngredientView {
+  translations: { language: string; name: string }[];
 }
 
 export interface FoodView {
   id: string;
   name: string;
   description: string | null;
-  // The language the name/description above actually resolved to — may differ
-  // from the language requested if that translation didn't exist.
+  content: string | null;
+  // The language the name/description/content above actually resolved to —
+  // may differ from the language requested if that translation didn't exist.
   language: string;
   availableLanguages: string[];
   cuisine: string | null;
   images: string[];
   nutrition: FoodNutritionView | null;
   tags: FoodTags;
+  ingredients: FoodIngredientView[];
   createdAt: Date;
   updatedAt: Date;
 }
 
 // The admin-panel shape: every translation, rather than one resolved language,
 // since admins author/edit all of them at once.
-export interface AdminFoodView extends Omit<FoodView, 'name' | 'description' | 'language' | 'availableLanguages'> {
+export interface AdminFoodView
+  extends Omit<FoodView, 'name' | 'description' | 'content' | 'language' | 'availableLanguages' | 'ingredients'> {
   translations: FoodTranslationView[];
+  ingredients: AdminFoodIngredientView[];
 }
 
 // A page of results, keyset-paginated. `nextCursor` is null on the last page.
@@ -94,19 +118,31 @@ export interface InteractionWithFoodView extends InteractionView {
 export const foodInclude = {
   cuisine: { select: { code: true } },
   images: { select: { url: true }, orderBy: { position: 'asc' } },
-  translations: { select: { language: true, name: true, description: true } },
+  translations: { select: { language: true, name: true, description: true, content: true } },
   nutrition: true,
   allergens: true,
   dietaryRestrictions: true,
   intolerances: true,
   features: true,
   diets: true,
+  ingredients: {
+    select: {
+      id: true,
+      ingredientId: true,
+      amount: true,
+      unit: true,
+      ingredient: { select: { translations: { select: { language: true, name: true } } } },
+    },
+    orderBy: { position: 'asc' },
+  },
 } satisfies Prisma.FoodInclude;
 
 type FoodRow = Prisma.FoodGetPayload<{ include: typeof foodInclude }>;
 
 // camelCase column name -> UPPER_SNAKE tag code (e.g. treeNuts -> TREE_NUTS).
-const toTagCode = (key: string): string => key.replace(/([A-Z])/g, '_$1').toUpperCase();
+// Exported for labelService, which needs the same mapping to key its public
+// (Web/Android-facing) label dictionary by the codes clients actually receive.
+export const toTagCode = (key: string): string => key.replace(/([A-Z])/g, '_$1').toUpperCase();
 
 // Flattens a boolean tag row (e.g. FoodAllergens) into the codes whose column is
 // true, ignoring the non-boolean `foodId` key. A null row (no tags recorded) -> [].
@@ -116,17 +152,6 @@ const trueTags = (row: Record<string, unknown> | null): string[] =>
         .filter(([, value]) => value === true)
         .map(([key]) => toTagCode(key))
     : [];
-
-// Picks the translation for `lang`, falling back to the default language, then
-// to whatever translation exists — so a dish with a gap in its catalog never
-// 404s, it just serves the closest thing to what was asked for.
-const pickTranslation = (
-  translations: FoodTranslationView[],
-  lang: string,
-): FoodTranslationView | undefined =>
-  translations.find((t) => t.language === lang) ??
-  translations.find((t) => t.language === DEFAULT_LANGUAGE) ??
-  translations[0];
 
 const sharedFoodFields = (row: FoodRow) => ({
   id: row.id,
@@ -155,23 +180,41 @@ const sharedFoodFields = (row: FoodRow) => ({
 });
 
 export const shapeFood = (row: FoodRow, lang: string = DEFAULT_LANGUAGE): FoodView => {
-  const translation = pickTranslation(row.translations, lang);
+  const translation = pickByLanguage(row.translations, lang, DEFAULT_LANGUAGE);
   return {
     ...sharedFoodFields(row),
     name: translation?.name ?? '',
     description: translation?.description ?? null,
+    content: translation?.content ?? null,
     language: translation?.language ?? DEFAULT_LANGUAGE,
     availableLanguages: row.translations.map((t) => t.language),
+    ingredients: row.ingredients.map((i) => ({
+      id: i.id,
+      ingredientId: i.ingredientId,
+      name: pickByLanguage(i.ingredient.translations, lang, DEFAULT_LANGUAGE)?.name ?? '',
+      amount: i.amount,
+      unit: i.unit,
+    })),
   };
 };
 
 // The admin-panel shape: all translations at once, rather than one resolved
-// language, since admins author/edit every language in the same form.
+// language, since admins author/edit every language in the same form. Each
+// ingredient line likewise carries every translation it has (not just one
+// resolved name), so the admin-client can tell which languages are missing.
 export const shapeFoodAdmin = (row: FoodRow): AdminFoodView => ({
   ...sharedFoodFields(row),
   translations: row.translations
-    .map((t) => ({ language: t.language, name: t.name, description: t.description }))
+    .map((t) => ({ language: t.language, name: t.name, description: t.description, content: t.content }))
     .sort((a, b) => a.language.localeCompare(b.language)),
+  ingredients: row.ingredients.map((i) => ({
+    id: i.id,
+    ingredientId: i.ingredientId,
+    name: pickByLanguage(i.ingredient.translations, DEFAULT_LANGUAGE, DEFAULT_LANGUAGE)?.name ?? '',
+    amount: i.amount,
+    unit: i.unit,
+    translations: i.ingredient.translations,
+  })),
 });
 
 const shapeInteraction = (row: {

@@ -39,9 +39,9 @@ const envSchema = z.object({
   CHALLENGE_TTL: z.coerce.number().int().positive().default(120),
   RECOVERY_TOKEN_TTL: z.coerce.number().int().positive().default(1800),
   EMAIL_VERIFICATION_TTL: z.coerce.number().int().positive().default(86400),
-  // Short-lived, since it's a 6-digit code meant to be typed in immediately.
+  // Short-lived, since it's a 4-digit code meant to be typed in immediately.
   EMAIL_CODE_TTL: z.coerce.number().int().positive().default(600),
-  // Failed-attempt limit before a code is rejected outright (6 digits = only 1e6 possibilities).
+  // Failed-attempt limit before a code is rejected outright (4 digits = only 1e4 possibilities).
   EMAIL_CODE_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
 
   // Recovery via email code (login / restore access by username + email). Short-lived

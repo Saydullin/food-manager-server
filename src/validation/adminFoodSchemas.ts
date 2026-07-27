@@ -42,8 +42,29 @@ const translationSchema = z
     language,
     name: z.string().trim().min(1, 'name is required').max(200),
     description: z.string().trim().max(2000).nullable().optional(),
+    // The recipe article body (HTML from the admin's rich-text editor).
+    content: z.string().trim().max(50000).nullable().optional(),
   })
   .strict();
+
+// A recipe ingredient line: either an existing catalog ingredient (`ingredientId`)
+// or a new one authored inline (`name`, in `language` — the admin form's active
+// language tab) — exactly one of the two, matching the service-layer
+// resolveIngredientId contract.
+const ingredientLineSchema = z
+  .object({
+    ingredientId: z.string().uuid().optional(),
+    name: z.string().trim().min(1).max(200).optional(),
+    language: language.optional(),
+    amount: z.number().positive('amount must be greater than 0'),
+    unit: z.string().trim().min(1).max(20).default('g'),
+  })
+  .strict()
+  .refine((v) => !!v.ingredientId || !!v.name, {
+    message: 'either ingredientId or name is required',
+  });
+
+const ingredientsSchema = z.array(ingredientLineSchema).max(200).optional();
 
 // At least one translation, and it must include the default language — every
 // dish needs one language nothing else can silently fall back past.
@@ -77,6 +98,7 @@ export const foodPayloadSchema = z
     intolerances: keyArray(INTOLERANCE_KEYS),
     features: keyArray(FEATURE_KEYS),
     diets: keyArray(DIET_KEYS),
+    ingredients: ingredientsSchema,
   })
   .strict();
 
