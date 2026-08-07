@@ -1,11 +1,13 @@
 import type { Response } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
 import * as foodService from '../services/foodService';
+import * as recommendationService from '../services/recommendationService';
 import type { AuthenticatedRequest } from '../middleware/requireAuth';
 
-// GET /foods/feed — a keyset-paginated page of the swipe deck (dishes not yet swiped).
+// GET /foods/feed — a page of the deck: unswiped dishes that fit the user's declared
+// diets/exclusions, ranked by taste fit, keyset-paginated by (score, createdAt, id).
 export const getFeed = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const page = await foodService.getFeed(req.auth!.userId, {
+  const page = await recommendationService.getFeed(req.auth!.userId, {
     limit: req.query.limit as unknown as number,
     cursor: req.query.cursor as unknown as string | undefined,
     lang: req.query.lang as unknown as string | undefined,

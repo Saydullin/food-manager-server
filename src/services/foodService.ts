@@ -3,7 +3,28 @@ import { prisma } from '../config/prisma';
 import { AppError } from '../utils/errors';
 import { decodeCursor, encodeCursor } from '../utils/cursor';
 import { pickByLanguage } from '../utils/i18n';
+import {
+  ALLERGEN_KEYS,
+  DIET_KEYS,
+  FEATURE_KEYS,
+  INTOLERANCE_KEYS,
+  RESTRICTION_KEYS,
+  toTagCode,
+} from '../utils/tagVocabulary';
 import { ensureUserExists } from './userService';
+
+// The tag vocabulary now lives in utils/tagVocabulary (a dependency-free module, so
+// the recommendation ranking can share it and still be unit-testable without a DB).
+// Re-exported here so its existing importers — the admin form options, the admin
+// validation schemas, and labelService — keep their import path unchanged.
+export {
+  ALLERGEN_KEYS,
+  DIET_KEYS,
+  FEATURE_KEYS,
+  INTOLERANCE_KEYS,
+  RESTRICTION_KEYS,
+  toTagCode,
+} from '../utils/tagVocabulary';
 
 // ---------------------------------------------------------------------------
 // Public shapes
@@ -139,14 +160,10 @@ export const foodInclude = {
 
 type FoodRow = Prisma.FoodGetPayload<{ include: typeof foodInclude }>;
 
-// camelCase column name -> UPPER_SNAKE tag code (e.g. treeNuts -> TREE_NUTS).
-// Exported for labelService, which needs the same mapping to key its public
-// (Web/Android-facing) label dictionary by the codes clients actually receive.
-export const toTagCode = (key: string): string => key.replace(/([A-Z])/g, '_$1').toUpperCase();
-
 // Flattens a boolean tag row (e.g. FoodAllergens) into the codes whose column is
 // true, ignoring the non-boolean `foodId` key. A null row (no tags recorded) -> [].
-const trueTags = (row: Record<string, unknown> | null): string[] =>
+// Exported for recommendationService, which flattens the same tag rows to score a dish.
+export const trueTags = (row: Record<string, unknown> | null): string[] =>
   row
     ? Object.entries(row)
         .filter(([, value]) => value === true)
@@ -237,48 +254,11 @@ const shapeInteraction = (row: {
 // Feed
 // ---------------------------------------------------------------------------
 
-export interface FeedParams {
-  limit: number;
-  cursor?: string;
-  lang?: string;
-}
-
-/**
- * A page of the recommendation deck for `userId`: dishes the user has NOT yet
- * swiped, newest first, keyset-paginated by `(createdAt, id)`.
- *
- * "Not yet swiped" is the `interactions: { none: { userId } }` filter — so as the
- * user likes/skips/hates dishes they drop out of subsequent pages automatically.
- * Ordering is newest-first for now; when preference-based ranking lands it slots in
- * here (the cursor contract and the swiped-set exclusion stay the same).
- */
-export const getFeed = async (
-  userId: string,
-  { limit, cursor, lang = DEFAULT_LANGUAGE }: FeedParams,
-): Promise<Page<FoodView>> => {
-  const decoded = cursor ? decodeCursor(cursor) : null;
-
-  const rows = await prisma.food.findMany({
-    where: {
-      interactions: { none: { userId } },
-      // Keyset: strictly "after" the cursor in (createdAt DESC, id DESC) order.
-      ...(decoded
-        ? {
-            OR: [
-              { createdAt: { lt: decoded.createdAt } },
-              { createdAt: decoded.createdAt, id: { lt: decoded.id } },
-            ],
-          }
-        : {}),
-    },
-    include: foodInclude,
-    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-    // One extra row tells us whether another page exists without a second query.
-    take: limit + 1,
-  });
-
-  return toPage(rows, limit, (r) => ({ createdAt: r.createdAt, id: r.id }), (r) => shapeFood(r, lang));
-};
+// The feed itself now lives in `recommendationService` — it ranks by fit rather than
+// recency, which needs the user's taste profile and verdict history, so it reads
+// from more tables than this module and pages on a different key. What stayed here
+// is everything a *dish* read needs (`foodInclude`, `shapeFood`, `toPage`), which
+// that service imports.
 
 /** Full detail for a single dish. 404s if it doesn't exist. */
 export const getFood = async (foodId: string, lang: string = DEFAULT_LANGUAGE): Promise<FoodView> => {
@@ -1021,15 +1001,6 @@ const SAMPLE_FOODS: SeedFood[] = [
 export const flagsFrom = (keys: string[], on: string[] | undefined): Record<string, boolean> =>
   Object.fromEntries(keys.map((k) => [k, (on ?? []).includes(k)]));
 
-// The valid camelCase column keys for each tag table — the source of truth for
-// which codes a client may send (converted to UPPER_SNAKE by toTagCode for reads).
-// Exported for the admin food validation schema and seeding, so both stay in sync
-// with the actual Prisma columns without redeclaring the lists.
-export const ALLERGEN_KEYS = ['milk', 'eggs', 'peanuts', 'treeNuts', 'soy', 'wheat', 'gluten', 'fish', 'shellfish', 'sesame', 'mustard', 'celery', 'lupin', 'molluscs', 'sulfites'];
-export const RESTRICTION_KEYS = ['vegetarian', 'vegan', 'pescatarian', 'halal', 'kosher'];
-export const INTOLERANCE_KEYS = ['lactose', 'gluten', 'fructose', 'histamine'];
-export const FEATURE_KEYS = ['spicy', 'verySpicy', 'lowCarb', 'highProtein', 'lowFat', 'lowCalorie', 'highFiber', 'highSugar', 'highSodium', 'sweet', 'sugarFree'];
-export const DIET_KEYS = ['keto', 'paleo', 'mediterranean', 'diabeticFriendly', 'lowGi'];
 
 /**
  * Seeds a fixed set of sample dishes (with images, nutrition, cuisine and tags) so

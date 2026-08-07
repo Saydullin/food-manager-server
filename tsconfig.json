@@ -19,5 +19,7 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  // Tests are run straight from source by `npm test` (tsx --test); keeping them out
+  // of the build means dist/ stays deployment-only.
+  "exclude": ["node_modules", "dist", "src/**/*.test.ts"]
 }

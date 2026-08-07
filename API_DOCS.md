@@ -204,6 +204,39 @@ has no translation for the requested language, the server falls back to the defa
 (`en`), then to whichever translation exists — a dish is never omitted or 404s just because a
 translation is missing. The resolved language is always echoed back in the `language` field.
 
+**The feed is personalized.** `GET /foods/feed` does not return the catalog in a fixed order — it
+filters and ranks per user, from data the client is already sending:
+
+*Hard filters* (a dish that fails one is **never** served):
+
+- **Declared diets** (`PUT /users/me/diets`). A compliance-style diet requires the matching flag on
+  the dish — `VEGAN` needs `dietaryRestrictions: ["VEGAN"]`. A dish with no `dietaryRestrictions`
+  data at all is therefore *not* served to a vegan: the server won't assert compliance it wasn't
+  told about. `LACTOSE_FREE` / `GLUTEN_FREE` work the other way round (the schema has no
+  "lactose-free" flag), excluding dishes tagged with the offending trait — for `GLUTEN_FREE` that's
+  the `GLUTEN` intolerance, the `GLUTEN` allergen, and `WHEAT`.
+- **Declared exceptions** (`PUT /users/me/food-exceptions`). An entry naming an allergen or
+  intolerance excludes every dish tagged with it. Matching accepts the code (`TREE_NUTS`),
+  the camelCase key (`treeNuts`), or the localized display name from `GET /catalog/labels`
+  (`Tree nuts`, `Орехи`) — so an allergy typed in the user's own language still filters. An entry
+  matching no known tag is treated as an ingredient name and excludes dishes whose ingredient list
+  contains that exact name (case-insensitive).
+- An exception naming a *taste* tag rather than an allergen (e.g. `SPICY`) is **ranked down, not
+  filtered out** — a matter of taste should never be able to empty the deck.
+
+*Ranking* (reorders what's left, best fit first) is learned from the user's own verdicts plus their
+declared preferences: cuisine and tag affinity from `LIKE`s, penalties from `DISLIKE`s — weighted
+higher when the user said *why* (`DISLIKE_TAG` / `WRONG_CUISINE` carry more than an inferred
+signal) — a bonus for tags/cuisines named in `PUT /users/me/food-preferences`, and a small bonus for
+cuisines the user has no verdict on at all, so a learned deck keeps opening up new territory instead
+of collapsing into one cuisine. `SKIP` is not read as taste. A brand-new account with no profile and
+no history gets plain newest-first, exactly as before.
+
+Two honest limits. The server can only filter on what the catalog declares, so a dish with missing
+or wrong allergen tags won't be caught — this is dietary best-effort, **not a medical guarantee**.
+And ranking scores up to 1000 unswiped dishes per request; past that, older unswiped dishes wait
+until newer ones are swiped away (logged server-side when it happens).
+
 **Pagination is keyset (cursor), not offset.** The feed subtracts the dishes the user has already
 swiped, and that set grows as they swipe — a fixed offset would skip/repeat rows, so instead every
 list response is:
@@ -217,8 +250,16 @@ To get the next page, pass `nextCursor` back as `?cursor=…`. `nextCursor` is `
 `400 INVALID_CURSOR`.
 
 ### GET /foods/feed?limit=&cursor=&lang=  🔒
-A page of dishes the user has **not swiped yet**, newest first. `limit` is `1`–`50` (default `10`).
+A page of dishes the user has **not swiped yet**, filtered and ranked per user (see
+**The feed is personalized** above). `limit` is `1`–`50` (default `10`).
 → 200 `{ items: [dish], nextCursor, hasMore }`
+
+Because the ordering is by fit, the cursor keys on `(score, createdAt, id)` rather than
+`(createdAt, id)`. It stays opaque — keep echoing `nextCursor` back as `?cursor=`. One consequence
+worth knowing when debugging: a verdict recorded part-way through a deck changes scores, so a dish
+can cross the cursor boundary and be missed or repeated on the next page. It's self-correcting — a
+request with no `cursor` always rebuilds a correct top-of-deck, and re-recording a verdict is an
+upsert. Cursors issued before ranking landed are accepted and treated as "start from the top".
 
 ### GET /foods/:foodId?lang=  🔒
 Full detail for one dish (same shape as a feed item). Non-UUID id → `400`; unknown id →
