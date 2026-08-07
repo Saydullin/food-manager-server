@@ -33,6 +33,15 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  // When this account finished (or explicitly declined) the app's onboarding
+  // questions. Null means it has never been asked. Scoped to the account rather than
+  // the install so the questions are asked exactly once per user, ever: a device-local
+  // flag would re-ask after every logout and after every reinstall, and would also
+  // wrongly skip the questions for a *different* account signing in on the same phone.
+  // A timestamp rather than a boolean because "when" is free to store and useful later;
+  // the API exposes only the derived boolean.
+  onboardingCompletedAt DateTime?
+
   // Moderation: an admin-suspended account. Does not revoke existing sessions/
   // tokens on its own — that would be a separate follow-up if ever needed.
   isBanned Boolean   @default(false)

@@ -35,6 +35,12 @@ export const setFoodExceptions = asyncHandler(async (req: AuthenticatedRequest, 
   res.status(200).json({ user });
 });
 
+// POST /users/me/onboarding-complete — a one-way latch; takes no body and is idempotent.
+export const completeOnboarding = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const user = await userService.markOnboardingComplete(req.auth!.userId);
+  res.status(200).json({ user });
+});
+
 export const getMySettings = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const settings = await userService.getSettings(req.auth!.userId);
   res.status(200).json({ settings });

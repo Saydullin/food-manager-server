@@ -111,9 +111,15 @@ storage/CDN and sends the resulting `https://…` link here (same convention as 
 
 ### GET /users/me  🔒
 → 200 `{ user }` where `user` is
-`{ id, username, email, emailVerified, imageUrl, name, age, status, description, isBanned, createdAt, updatedAt, foodPreferences, foodExceptions, diets, settings }`.
+`{ id, username, email, emailVerified, imageUrl, name, age, status, description, isBanned, onboardingCompleted, createdAt, updatedAt, foodPreferences, foodExceptions, diets, settings }`.
 `settings` is the object described under **Settings** below — so a single `GET /users/me`
 gives the client everything, including the user's preferences, right after login.
+
+`onboardingCompleted` is `false` on a fresh account and flips permanently once the client
+calls the endpoint below. It lives on the **account**, not the install, so a client can ask
+its onboarding questions exactly once per user — a device-local flag would re-ask after
+every logout and every reinstall, and would also wrongly skip the questions for a
+*different* account signing in on the same device.
 
 ### PATCH /users/me  🔒
 Edit the profile fields. Body: any **non-empty** subset of
@@ -131,6 +137,15 @@ the picture (idempotent).
 
 ### DELETE /users/me/image  🔒
 Removes the picture (sets `imageUrl` back to `null`).
+→ 200 `{ user }` (the full updated profile)
+
+### POST /users/me/onboarding-complete  🔒
+Marks the account as having answered (or explicitly declined) the client's onboarding
+questions, flipping `onboardingCompleted` to `true`. No body.
+
+A one-way latch, and **idempotent**: re-sending keeps the original completion timestamp and
+can never un-set the flag. That's deliberate — it lets a client that recorded a completion
+while offline simply re-send later without needing to know whether the first attempt landed.
 → 200 `{ user }` (the full updated profile)
 
 ## Settings

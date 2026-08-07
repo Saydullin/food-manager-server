@@ -59,6 +59,11 @@ userRouter.put(
   dietController.setMyDiets,
 );
 
+// Marks the account as having answered (or declined) the onboarding questions, so the
+// app asks exactly once per user rather than once per install. Takes no body and is
+// idempotent; POST rather than a PATCH field because it's a one-way latch.
+userRouter.post('/me/onboarding-complete', requireAuth, userController.completeOnboarding);
+
 // Client-side settings (language, theme, push notifications). GET reads the current
 // set (available right after registration/login); PATCH applies a partial update —
 // only the fields sent are changed. Both require a valid access token.

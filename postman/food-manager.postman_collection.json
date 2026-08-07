@@ -781,6 +781,34 @@
             "body": { "mode": "raw", "raw": "{\n  \"exceptions\": {{foodExceptions}}\n}" },
             "description": "Replaces the authenticated user's food exceptions — things they dislike / want avoided — with the given list of free-form strings (e.g. [\"cilantro\", \"mushrooms\"]). Same replace-in-full, idempotent semantics and validation as 6.1. Edit the 'foodExceptions' collection variable to change what's sent. Returns the full updated profile, whose foodExceptions array is sorted alphabetically."
           }
+        },
+        {
+          "name": "6.3 Complete Onboarding (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('account is flagged as onboarded', () => pm.expect(body.user.onboardingCompleted).to.eql(true));",
+                  "pm.test('re-sending is idempotent', () => pm.expect(body.user.onboardingCompleted).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": {
+              "raw": "{{baseUrl}}/users/me/onboarding-complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me", "onboarding-complete"]
+            },
+            "description": "Latches the authenticated account as having answered (or declined) the app's onboarding questions, so the client asks once per user instead of once per install. Takes no body. Idempotent and one-way: re-sending keeps the original timestamp and never un-sets the flag, which is what lets the client safely retry a completion it recorded while offline. The flag is exposed as 'onboardingCompleted' on every profile response (GET /users/me and friends)."
+          }
         }
       ]
     },

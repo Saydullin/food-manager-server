@@ -37,6 +37,7 @@ const profileSelect = {
   status: true,
   description: true,
   isBanned: true,
+  onboardingCompletedAt: true,
   createdAt: true,
   updatedAt: true,
   foodPreferences: { select: { value: true }, orderBy: { value: 'asc' } },
@@ -62,6 +63,12 @@ export interface UserProfile {
   status: string | null;
   description: string | null;
   isBanned: boolean;
+  /**
+   * Whether this account has been through the onboarding questions. Exposed as a plain
+   * boolean (the column is a nullable timestamp) — the client only ever needs to know
+   * whether to ask, and a derived boolean keeps that the only thing it can depend on.
+   */
+  onboardingCompleted: boolean;
   createdAt: Date;
   updatedAt: Date;
   foodPreferences: string[];
@@ -81,6 +88,7 @@ const shapeProfile = (row: UserRow): UserProfile => ({
   status: row.status,
   description: row.description,
   isBanned: row.isBanned,
+  onboardingCompleted: row.onboardingCompletedAt !== null,
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
   foodPreferences: row.foodPreferences.map((p) => p.value),
@@ -202,6 +210,26 @@ export const setFoodExceptions = async (
     prisma.userFoodException.deleteMany({ where: { userId } }),
     prisma.userFoodException.createMany({ data: values.map((value) => ({ userId, value })) }),
   ]);
+  return getProfile(userId);
+};
+
+/**
+ * Stamps the account as having been through the onboarding questions.
+ *
+ * A one-way latch, and idempotent: re-marking keeps the original timestamp rather than
+ * refreshing it, so "when was this user onboarded" survives the client re-sending (which
+ * it will — the mobile app retries this on refresh if its local copy says done and the
+ * server disagrees, to heal a completion that was recorded while offline).
+ *
+ * Deliberately not part of `PATCH /users/me/settings`: settings are preferences the user
+ * flips back and forth, this is a fact about the account that only ever goes one way.
+ */
+export const markOnboardingComplete = async (userId: string): Promise<UserProfile> => {
+  await ensureUserExists(userId);
+  await prisma.user.updateMany({
+    where: { id: userId, onboardingCompletedAt: null },
+    data: { onboardingCompletedAt: new Date() },
+  });
   return getProfile(userId);
 };
 
