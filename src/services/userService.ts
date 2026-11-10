@@ -1,4 +1,4 @@
-import { Prisma, Theme } from '@prisma/client';
+import { Prisma, Theme, type MedicalRestriction, type Sex } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { AppError } from '../utils/errors';
 
@@ -36,6 +36,8 @@ const profileSelect = {
   age: true,
   status: true,
   description: true,
+  sex: true,
+  medicalRestrictions: true,
   isBanned: true,
   onboardingCompletedAt: true,
   createdAt: true,
@@ -62,6 +64,10 @@ export interface UserProfile {
   age: number | null;
   status: string | null;
   description: string | null;
+  /** The account owner's own sex, for the "cook dinner" flow. Optional. */
+  sex: Sex | null;
+  /** The account owner's own doctor's restrictions (dinner filtering). */
+  medicalRestrictions: MedicalRestriction[];
   isBanned: boolean;
   /**
    * Whether this account has been through the onboarding questions. Exposed as a plain
@@ -87,6 +93,8 @@ const shapeProfile = (row: UserRow): UserProfile => ({
   age: row.age,
   status: row.status,
   description: row.description,
+  sex: row.sex,
+  medicalRestrictions: row.medicalRestrictions,
   isBanned: row.isBanned,
   onboardingCompleted: row.onboardingCompletedAt !== null,
   createdAt: row.createdAt,
@@ -114,6 +122,9 @@ export interface ProfilePatch {
   age?: number | null;
   status?: string | null;
   description?: string | null;
+  sex?: Sex | null;
+  /** Replaces the whole list; [] clears it. */
+  medicalRestrictions?: MedicalRestriction[];
 }
 
 /**

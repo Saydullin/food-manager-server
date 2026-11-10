@@ -104,6 +104,10 @@ Editable account fields, all optional and `null` until the user fills them in:
 - `age` — whole number of years, `0`–`150`.
 - `status` — a short one-liner (≤ 150 chars).
 - `description` — the longer "about me" (≤ 2000 chars).
+- `sex` — `"MALE"` | `"FEMALE"` | `null`. The account owner as an eater at the dinner table.
+- `medicalRestrictions` — doctor's recommendations, an array of `LOW_CALORIE`, `LOW_FAT`,
+  `LOW_CARB`, `NO_SPICY`, `LOW_SALT`, `LOW_SUGAR` (default `[]`). Applied by
+  `GET /dinner/suggestions` (see **Cook dinner**), not by the feed.
 
 The profile picture is stored as a URL — the client uploads the image file to its own
 storage/CDN and sends the resulting `https://…` link here (same convention as food images).
@@ -111,7 +115,7 @@ storage/CDN and sends the resulting `https://…` link here (same convention as 
 
 ### GET /users/me  🔒
 → 200 `{ user }` where `user` is
-`{ id, username, email, emailVerified, imageUrl, name, age, status, description, isBanned, onboardingCompleted, createdAt, updatedAt, foodPreferences, foodExceptions, diets, settings }`.
+`{ id, username, email, emailVerified, imageUrl, name, age, status, description, sex, medicalRestrictions, isBanned, onboardingCompleted, createdAt, updatedAt, foodPreferences, foodExceptions, diets, settings }`.
 `settings` is the object described under **Settings** below — so a single `GET /users/me`
 gives the client everything, including the user's preferences, right after login.
 
@@ -123,7 +127,8 @@ every logout and every reinstall, and would also wrongly skip the questions for 
 
 ### PATCH /users/me  🔒
 Edit the profile fields. Body: any **non-empty** subset of
-`{ username?, name?, age?, status?, description? }`. Only the fields you send change; the rest
+`{ username?, name?, age?, status?, description?, sex?, medicalRestrictions? }`. `sex: null` clears it;
+`medicalRestrictions` replaces the whole list (`[]` clears it). Only the fields you send change; the rest
 keep their current value (partial update). For the optional text fields (`name`, `status`,
 `description`), send `null` (or an empty string) to **clear** a field. An empty body, an unknown
 field, or an invalid value returns `400`; a `username` already taken by another account returns
@@ -204,7 +209,8 @@ one language:
     "dietaryRestrictions": ["PESCATARIAN"],
     "intolerances": [],
     "features": ["SPICY", "HIGH_PROTEIN", "LOW_FAT"],
-    "diets": []
+    "diets": [],
+    "appliances": ["STOVE"]           // equipment the dish needs; [] = nothing special
   },
   "ingredients": [                    // language-agnostic; ordered as authored
     { "id": "uuid", "ingredientId": "uuid", "name": "Tuna", "amount": 150, "unit": "g" }
@@ -313,6 +319,91 @@ Seeds a fixed set of sample dishes (images + nutrition + cuisine + tags) so the 
 Idempotent. Mounted only when `NODE_ENV != production`, like the `/api/dev` keystore helpers.
 → 200 `{ count }`
 
+## Cook dinner: household, kitchen, pantry  🔒
+
+The "what are we eating tonight?" flow. The user describes the people at their table, the
+equipment in their kitchen and what they have at home, and gets dishes that suit **everyone**.
+Every write is a replace-in-full `PUT`, so a client can queue them offline and replay later.
+
+### GET /users/me/household/eaters  🔒
+The people the user cooks for, in the order they were added. The account owner is **not** in
+this list — "me" is the profile itself (`foodExceptions`, `diets`, `sex`, `medicalRestrictions`).
+→ 200 `{ eaters: [eater] }` where `eater` is
+`{ id, name, sex, age, likes, avoid, allergens, diets, medicalRestrictions, createdAt, updatedAt }`.
+
+### PUT /users/me/household/eaters/:eaterId  🔒
+Create or **fully replace** an eater. `eaterId` is a UUID **chosen by the client**, so creating
+someone offline and replaying the request can never produce a duplicate. Body:
+
+- `name` — required, 1–50 chars.
+- `sex` — `"MALE"` | `"FEMALE"` | `null`; `age` — `0`–`150` or `null`.
+- `likes` — cuisine/tag codes the person enjoys (`"ITALIAN"`, `"SPICY"`); ranking only.
+- `avoid` — what the person won't eat: tag codes or free text (`"SPICY"`, `"кинза"`). At dinner
+  this **excludes** (unlike the feed, where a taste exception only ranks a dish down).
+- `allergens` — allergen codes (`"PEANUTS"`, …); unknown code → `400`.
+- `diets` — diet catalog codes (see `GET /diets`); unknown code → `400 UNKNOWN_DIET`.
+- `medicalRestrictions` — same values as on the profile.
+
+Omitted list fields become `[]` (it's a replace, not a patch). At most 20 eaters per account →
+otherwise `400 TOO_MANY_EATERS`. An id that belongs to another account → `404 EATER_NOT_FOUND`.
+→ 200 `{ eater }`
+
+### DELETE /users/me/household/eaters/:eaterId  🔒
+Idempotent — never 404s. → 200 `{ removed: true|false }`
+
+### GET /users/me/kitchen  🔒
+→ 200 `{ kitchen: { appliances } }` — `appliances` is `null` until the user has answered (so the
+client knows to ask), otherwise an array of `STOVE`, `OVEN`, `AIR_FRYER`, `MICROWAVE`, `GRILL`,
+`MULTICOOKER`, `BLENDER` (`[]` = asked, nothing selected).
+
+### PUT /users/me/kitchen  🔒
+Body: `{ appliances: [...] }`, replaced in full. → 200 `{ kitchen }`
+
+### GET /ingredients?search=&lang=  🔒
+Search the ingredient catalog (by name in any language) for the "what's at home" picker. Up to 50
+results, alphabetical by the name resolved to `lang`. Read-only: only admins add ingredients.
+→ 200 `{ ingredients: [{ id, name }] }`
+
+### GET /users/me/pantry?lang=  🔒
+What the user has at home (presence only, no quantities). → 200 `{ items: [{ ingredientId, name }] }`
+
+### PUT /users/me/pantry?lang=  🔒
+Body: `{ ingredientIds: [uuid] }`, replaced in full (`[]` empties it); unknown id →
+`400 UNKNOWN_INGREDIENT`. → 200 `{ items }`
+
+### GET /dinner/suggestions?eaterIds=&includeSelf=&source=&maxMissing=&limit=&lang=  🔒
+Dishes that suit every selected eater. Query:
+
+- `eaterIds` — comma-separated household eater ids (up to 20); unknown id → `404 EATER_NOT_FOUND`.
+- `includeSelf` — `true` (default) | `false`: whether the account owner is eating too. At least one
+  eater is required.
+- `source` — `ANY` (default) or `AT_HOME` (cook from the pantry).
+- `maxMissing` — for `AT_HOME`, how many ingredients may still need buying (`0`–`10`, default `2`;
+  staples like salt and oil are rarely listed in a pantry).
+- `limit` — `1`–`50`, default `20`. Not paginated: it's a short list, not a feed.
+
+A dish is suggested only if **all** of these hold:
+
+| Source | Rule |
+|---|---|
+| Each eater's allergens, diets, exceptions | exactly the feed's hard filters (see **The feed is personalized**) |
+| Each eater's taste exceptions (`avoid`, e.g. `SPICY`) | **excluded** (the feed only ranks these down) |
+| `LOW_CALORIE` | `LOW_CALORIE` feature, or ≤ 500 kcal per serving |
+| `LOW_FAT` | `LOW_FAT` feature, or ≤ 15 g fat per serving |
+| `LOW_CARB` | `LOW_CARB` feature, `KETO` diet, or ≤ 20 g carbs per serving |
+| `NO_SPICY` | neither `SPICY` nor `VERY_SPICY` |
+| `LOW_SALT` / `LOW_SUGAR` | not `HIGH_SODIUM` / not `HIGH_SUGAR` |
+| Kitchen (if answered) | the dish needs no appliance the kitchen lacks |
+| `source=AT_HOME` | the dish has an ingredient list, and at most `maxMissing` aren't in the pantry |
+| History | the user hasn't `DISLIKE`d it (liked and skipped dishes are fine) |
+
+Order: for `AT_HOME`, fewest missing ingredients first; then the feed's ranking (the user's learned
+taste, plus every eater's `likes` as declared preferences); then newest.
+
+→ 200 `{ suggestions: [{ food: dish, missingIngredients: [{ ingredientId, name, amount, unit }] }] }` —
+`missingIngredients` is the shopping list (ingredients not in the pantry); `[]` when the pantry is
+empty. Same best-effort caveat as the feed: the server can only filter on what dishes declare.
+
 ## Complaints  🔒
 Lets a user report another user or a dish. Reports queue up for admin moderation (see below).
 
@@ -359,6 +450,10 @@ translation at once (admins author all languages in one form), not one resolved 
   if a case-insensitive match already exists). `amount` must be `> 0`; `unit` is free text
   (e.g. `"g"`, `"ml"`, `"pcs"`), defaulting to `"g"`. Sending `ingredients` **replaces the whole
   list** (same full-replacement convention as `images`/tag arrays).
+- `appliances` — the equipment the dish needs, as camelCase keys like the other tag arrays
+  (`stove`, `oven`, `airFryer`, `microwave`, `grill`, `multicooker`, `blender`; listed in
+  `GET /admin/meta/food-form-options` → `appliances`). Read back as UPPER_SNAKE codes in
+  `tags.appliances`. Used by `GET /dinner/suggestions` to hide dishes a user's kitchen can't make.
 
 ### GET /admin/foods?search=&page=&pageSize=  🔑
 Every dish (no swipe-exclusion). `search` matches `name` in **any** language, case-insensitive.

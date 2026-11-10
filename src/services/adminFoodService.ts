@@ -4,6 +4,7 @@ import { AppError } from '../utils/errors';
 import { toPagedResult, type PagedResult } from '../utils/pagination';
 import {
   ALLERGEN_KEYS,
+  APPLIANCE_KEYS,
   DEFAULT_LANGUAGE,
   DIET_KEYS,
   FEATURE_KEYS,
@@ -80,6 +81,7 @@ export interface FoodPayload {
   intolerances?: string[];
   features?: string[];
   diets?: string[];
+  appliances?: string[];
   ingredients?: FoodIngredientInput[];
 }
 
@@ -157,6 +159,9 @@ export const createFood = async (input: FoodPayload): Promise<AdminFoodView> => 
     });
     await tx.foodFeatures.create({ data: { foodId: food.id, ...flagsFrom(FEATURE_KEYS, input.features) } });
     await tx.foodDiets.create({ data: { foodId: food.id, ...flagsFrom(DIET_KEYS, input.diets) } });
+    await tx.foodAppliances.create({
+      data: { foodId: food.id, ...flagsFrom(APPLIANCE_KEYS, input.appliances) },
+    });
 
     return food.id;
   });
@@ -239,6 +244,10 @@ export const updateFood = async (foodId: string, input: FoodPayload): Promise<Ad
     if (input.diets !== undefined) {
       const data = flagsFrom(DIET_KEYS, input.diets);
       await tx.foodDiets.upsert({ where: { foodId }, create: { foodId, ...data }, update: data });
+    }
+    if (input.appliances !== undefined) {
+      const data = flagsFrom(APPLIANCE_KEYS, input.appliances);
+      await tx.foodAppliances.upsert({ where: { foodId }, create: { foodId, ...data }, update: data });
     }
   });
 

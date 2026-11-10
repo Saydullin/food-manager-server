@@ -1,0 +1,28 @@
+# Local PostgreSQL for development — no Postgres install needed, just Docker Desktop.
+# Credentials match DATABASE_URL in .env.example:
+#   postgresql://postgres:postgres@localhost:5432/food_manager
+#
+#   docker compose up -d      # start (data survives restarts in the `pgdata` volume)
+#   docker compose down       # stop
+#   docker compose down -v    # stop AND wipe the database
+services:
+  db:
+    image: postgres:16.4-alpine
+    container_name: food-manager-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: food_manager
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d food_manager']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

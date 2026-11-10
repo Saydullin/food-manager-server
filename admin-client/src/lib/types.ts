@@ -20,6 +20,8 @@ export interface FoodTags {
   intolerances: string[];
   features: string[];
   diets: string[];
+  // Optional so a server without the field yet doesn't break the form.
+  appliances?: string[];
 }
 
 export interface FoodTranslation {
@@ -62,6 +64,7 @@ export interface FoodFormOptions {
   intolerances: string[];
   features: string[];
   foodDiets: string[];
+  appliances?: string[];
   languages: string[];
 }
 

@@ -33,16 +33,24 @@ Tinder-свайпов. Стек: Express, TypeScript и Prisma (PostgreSQL).
 ### Требования
 
 - Node.js 18+
-- PostgreSQL
+- PostgreSQL — или просто Docker Desktop: `docker-compose.yml` поднимает базу под `.env.example`
 
 ### Установка
 
 ```bash
 npm install
 cp .env.example .env   # затем заполните DATABASE_URL, JWT-секреты и т.д.
+docker compose up -d   # локальный Postgres (пропустите, если у вас свой)
 npm run prisma:migrate
 npm run dev
 ```
+
+### IntelliJ IDEA
+
+Конфигурации запуска лежат в `.idea/runConfigurations/`: **Postgres (Docker)**, **Prisma: migrate**,
+**Server (dev)**, **Tests**, **Admin panel (dev)**. *Prisma: migrate* и *Server (dev)* сначала
+поднимают контейнер с Postgres. Это npm-конфигурации: нужна поддержка JavaScript/Node.js и
+Node-интерпретатор в *Settings → Languages & Frameworks → Node.js*.
 
 Сервер запускается на порту из переменной `PORT` в `.env` (по умолчанию `3000`).
 

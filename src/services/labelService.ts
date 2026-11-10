@@ -1,5 +1,6 @@
 import {
   ALLERGEN_KEYS,
+  APPLIANCE_KEYS,
   DEFAULT_LANGUAGE,
   DIET_KEYS,
   FEATURE_KEYS,
@@ -12,6 +13,7 @@ import {
 // against the same localized names without importing a DB-backed service.
 import {
   ALLERGEN_LABELS,
+  APPLIANCE_LABELS,
   DIET_LABELS,
   FEATURE_LABELS,
   INTOLERANCE_LABELS,
@@ -31,6 +33,7 @@ export interface TagLabels {
   intolerances: Record<string, string>;
   features: Record<string, string>;
   diets: Record<string, string>;
+  appliances: Record<string, string>;
 }
 
 /**
@@ -46,6 +49,7 @@ export const getTagLabels = (lang: string = DEFAULT_LANGUAGE): TagLabels => ({
   intolerances: labelsFor(INTOLERANCE_KEYS, INTOLERANCE_LABELS, lang),
   features: labelsFor(FEATURE_KEYS, FEATURE_LABELS, lang),
   diets: labelsFor(DIET_KEYS, DIET_LABELS, lang),
+  appliances: labelsFor(APPLIANCE_KEYS, APPLIANCE_LABELS, lang),
 });
 
 /**
@@ -63,5 +67,6 @@ export const getTagLabelsByCode = (lang: string = DEFAULT_LANGUAGE): TagLabels =
     intolerances: rekey(byCamelKey.intolerances),
     features: rekey(byCamelKey.features),
     diets: rekey(byCamelKey.diets),
+    appliances: rekey(byCamelKey.appliances),
   };
 };

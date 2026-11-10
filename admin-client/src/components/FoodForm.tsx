@@ -21,6 +21,8 @@ export interface FoodFormValues {
   intolerances: string[];
   features: string[];
   diets: string[];
+  // Equipment the dish needs (used by the app's "cook dinner" filter).
+  appliances: string[];
   // Language-agnostic, like nutrition/tags — one ingredient list for the recipe.
   ingredients: IngredientLine[];
 }
@@ -36,6 +38,7 @@ export function emptyFoodForm(): FoodFormValues {
     intolerances: [],
     features: [],
     diets: [],
+    appliances: [],
     ingredients: [],
   };
 }
@@ -65,6 +68,7 @@ export function foodToFormValues(food: Food): FoodFormValues {
     intolerances: toCamelList(food.tags.intolerances),
     features: toCamelList(food.tags.features),
     diets: toCamelList(food.tags.diets),
+    appliances: toCamelList(food.tags.appliances ?? []),
     ingredients: food.ingredients.map((i) => ({
       key: i.id,
       ingredientId: i.ingredientId,
@@ -130,6 +134,7 @@ export function formValuesToPayload(values: FoodFormValues) {
     intolerances: values.intolerances,
     features: values.features,
     diets: values.diets,
+    appliances: values.appliances,
     ingredients,
   };
 }
@@ -140,6 +145,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   intolerances: 'Непереносимости',
   features: 'Особенности',
   diets: 'Диеты',
+  appliances: 'Нужная техника',
 };
 
 function TagCheckboxes({
@@ -359,6 +365,12 @@ export function FoodForm({
           keys={options.foodDiets}
           selected={values.diets}
           onToggle={(k) => toggleTag('diets', k)}
+        />
+        <TagCheckboxes
+          categoryKey="appliances"
+          keys={options.appliances ?? []}
+          selected={values.appliances}
+          onToggle={(k) => toggleTag('appliances', k)}
         />
       </div>
 

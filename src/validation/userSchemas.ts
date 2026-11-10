@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { medicalRestrictionList, sex } from './householdSchemas';
 
 // A profile image is referenced by URL (the file itself lives in external storage,
 // same convention as Food.imageUrl). Restricted to http(s) so we never store
@@ -55,10 +56,14 @@ export const updateProfileSchema = z
     age,
     status: optionalText(150, 'status'),
     description: optionalText(2000, 'description'),
+    // The account owner as an eater at the dinner table (see householdSchemas).
+    sex: sex.nullable().optional(),
+    medicalRestrictions: medicalRestrictionList.optional(),
   })
   .strict()
   .refine((body) => Object.keys(body).length > 0, {
-    message: 'provide at least one of: username, name, age, status, description',
+    message:
+      'provide at least one of: username, name, age, status, description, sex, medicalRestrictions',
   });
 
 // A single free-form food tag (a preference like "spicy"/"italian" or an

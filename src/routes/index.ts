@@ -9,6 +9,7 @@ import { catalogRouter } from './catalogRoutes';
 import { foodRouter } from './foodRoutes';
 import { uploadRouter } from './uploadRoutes';
 import { complaintRouter } from './complaintRoutes';
+import { dinnerRouter, ingredientRouter } from './dinnerRoutes';
 import { adminRouter } from './admin';
 
 export const apiRouter = Router();
@@ -21,6 +22,8 @@ apiRouter.use('/catalog', catalogRouter);
 apiRouter.use('/foods', foodRouter);
 apiRouter.use('/uploads', uploadRouter);
 apiRouter.use('/complaints', complaintRouter);
+apiRouter.use('/ingredients', ingredientRouter);
+apiRouter.use('/dinner', dinnerRouter);
 apiRouter.use('/admin', adminRouter);
 
 if (env.NODE_ENV !== 'production') {

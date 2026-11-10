@@ -26,9 +26,12 @@ export const RESTRICTION_KEYS = ['vegetarian', 'vegan', 'pescatarian', 'halal', 
 export const INTOLERANCE_KEYS = ['lactose', 'gluten', 'fructose', 'histamine'];
 export const FEATURE_KEYS = ['spicy', 'verySpicy', 'lowCarb', 'highProtein', 'lowFat', 'lowCalorie', 'highFiber', 'highSugar', 'highSodium', 'sweet', 'sugarFree'];
 export const DIET_KEYS = ['keto', 'paleo', 'mediterranean', 'diabeticFriendly', 'lowGi'];
+// Equipment a dish needs (FoodAppliances). Codes match the KitchenAppliance enum
+// (airFryer -> AIR_FRYER), so a dish's needs compare directly with a user's kitchen.
+export const APPLIANCE_KEYS = ['stove', 'oven', 'airFryer', 'microwave', 'grill', 'multicooker', 'blender'];
 
 /** Which tag table a code belongs to — also the Prisma relation name on `Food`. */
-export type TagGroup = 'allergens' | 'dietaryRestrictions' | 'intolerances' | 'features' | 'diets';
+export type TagGroup = 'allergens' | 'dietaryRestrictions' | 'intolerances' | 'features' | 'diets' | 'appliances';
 
 export const ALLERGEN_LABELS: LabelDict = {
   milk: { en: 'Milk', ru: 'Молоко' },
@@ -85,7 +88,23 @@ export const DIET_LABELS: LabelDict = {
   lowGi: { en: 'Low GI', ru: 'Низкий гликемический индекс' },
 };
 
-/** Every tag group paired with its column list and label dictionary. */
+export const APPLIANCE_LABELS: LabelDict = {
+  stove: { en: 'Stove', ru: 'Плита' },
+  oven: { en: 'Oven', ru: 'Духовка' },
+  airFryer: { en: 'Air fryer', ru: 'Аэрогриль' },
+  microwave: { en: 'Microwave', ru: 'Микроволновка' },
+  grill: { en: 'Grill', ru: 'Гриль' },
+  multicooker: { en: 'Multicooker', ru: 'Мультиварка' },
+  blender: { en: 'Blender', ru: 'Блендер' },
+};
+
+/**
+ * Every *food-describing* tag group paired with its column list and label dictionary.
+ * These are what a user's free-text likes/exceptions are matched against (see
+ * ranking's tag index). Appliances are deliberately left out: "oven" in someone's
+ * exception list means nothing about what they can eat, and resolving it to a tag
+ * would only add noise to the scoring.
+ */
 export const TAG_GROUPS: { group: TagGroup; keys: string[]; labels: LabelDict }[] = [
   { group: 'allergens', keys: ALLERGEN_KEYS, labels: ALLERGEN_LABELS },
   { group: 'intolerances', keys: INTOLERANCE_KEYS, labels: INTOLERANCE_LABELS },

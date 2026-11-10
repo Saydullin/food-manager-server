@@ -21,8 +21,8 @@ const cursor = z.string().trim().min(1).max(512).optional();
 
 // The language a client wants dish content in (BCP-47 tag, e.g. "en", "ru").
 // Optional — the service falls back to the default language when absent or
-// when a dish has no translation for it.
-const lang = z
+// when a dish has no translation for it. Shared with the household/dinner schemas.
+export const lang = z
   .string()
   .trim()
   .regex(/^[a-zA-Z]{2,3}(-[a-zA-Z]{2,4})?$/, 'lang must be a BCP-47 tag, e.g. "en" or "en-US"')

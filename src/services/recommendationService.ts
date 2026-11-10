@@ -54,7 +54,7 @@ export interface FeedParams {
  * scoring into SQL rather than to raise this number. A crossing is logged, never
  * silent.
  */
-const MAX_CANDIDATES = 1000;
+export const MAX_CANDIDATES = 1000;
 
 /**
  * How many of the user's most recent verdicts inform the taste signal. Recent
@@ -64,7 +64,7 @@ const MAX_CANDIDATES = 1000;
 const MAX_INTERACTION_HISTORY = 300;
 
 /** The dish columns needed to score a candidate — deliberately not `foodInclude`. */
-const candidateSelect = {
+export const candidateSelect = {
   id: true,
   createdAt: true,
   cuisine: { select: { code: true } },
@@ -73,7 +73,7 @@ const candidateSelect = {
   dietaryRestrictions: true,
 } as const;
 
-type CandidateRow = {
+export type CandidateRow = {
   id: string;
   createdAt: Date;
   cuisine: { code: string } | null;
@@ -87,7 +87,7 @@ type CandidateRow = {
  * intolerances are left out on purpose — they're handled by the hard filters, and
  * scoring a dish up for carrying an allergen would be nonsense.
  */
-const toCandidate = (row: CandidateRow): Candidate => ({
+export const toCandidate = (row: CandidateRow): Candidate => ({
   id: row.id,
   createdAt: row.createdAt,
   cuisine: row.cuisine?.code ?? null,
@@ -126,7 +126,7 @@ const loadTasteProfile = async (userId: string): Promise<TasteProfile> => {
  * is single-valued, so inferring it from a rejection is sound enough to keep at a
  * low weight.
  */
-const loadTasteSignals = async (userId: string): Promise<TasteSignals> => {
+export const loadTasteSignals = async (userId: string): Promise<TasteSignals> => {
   const rows = await prisma.foodInteraction.findMany({
     where: { userId },
     orderBy: { updatedAt: 'desc' },

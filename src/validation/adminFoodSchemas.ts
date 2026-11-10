@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   ALLERGEN_KEYS,
+  APPLIANCE_KEYS,
   DEFAULT_LANGUAGE,
   DIET_KEYS,
   FEATURE_KEYS,
@@ -98,6 +99,7 @@ export const foodPayloadSchema = z
     intolerances: keyArray(INTOLERANCE_KEYS),
     features: keyArray(FEATURE_KEYS),
     diets: keyArray(DIET_KEYS),
+    appliances: keyArray(APPLIANCE_KEYS),
     ingredients: ingredientsSchema,
   })
   .strict();

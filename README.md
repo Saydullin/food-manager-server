@@ -29,16 +29,24 @@ Express, TypeScript, and Prisma (PostgreSQL).
 ### Prerequisites
 
 - Node.js 18+
-- PostgreSQL
+- PostgreSQL — or just Docker Desktop: `docker-compose.yml` runs one that matches `.env.example`
 
 ### Setup
 
 ```bash
 npm install
 cp .env.example .env   # then fill in DATABASE_URL, JWT secrets, etc.
+docker compose up -d   # local Postgres (skip if you run your own)
 npm run prisma:migrate
 npm run dev
 ```
+
+### IntelliJ IDEA
+
+Run configurations live in `.idea/runConfigurations/`: **Postgres (Docker)**, **Prisma: migrate**,
+**Server (dev)**, **Tests**, **Admin panel (dev)**. *Prisma: migrate* and *Server (dev)* start the
+Postgres container first. They're npm configurations, so they need the JavaScript/Node.js support
+and a Node interpreter set under *Settings → Languages & Frameworks → Node.js*.
 
 The server starts on `PORT` from `.env` (default `3000`).
 

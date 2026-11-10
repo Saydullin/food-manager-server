@@ -1,8 +1,16 @@
 import { Router } from 'express';
 import * as userController from '../controllers/userController';
 import * as dietController from '../controllers/dietController';
+import * as householdController from '../controllers/householdController';
 import { requireAuth } from '../middleware/requireAuth';
-import { validateBody } from '../middleware/validate';
+import { validateBody, validateParams, validateQuery } from '../middleware/validate';
+import {
+  eaterIdParamSchema,
+  pantryQuerySchema,
+  putEaterSchema,
+  putKitchenSchema,
+  putPantrySchema,
+} from '../validation/householdSchemas';
 import {
   setFoodExceptionsSchema,
   setFoodPreferencesSchema,
@@ -73,4 +81,37 @@ userRouter.patch(
   requireAuth,
   validateBody(updateSettingsSchema),
   userController.updateMySettings,
+);
+
+// --- "Cook dinner": household, kitchen, pantry -------------------------------
+// All replace-in-full PUTs, so the client can replay them from an offline queue.
+
+// The people the user cooks for. Eater ids are client-generated UUIDs (see schema).
+userRouter.get('/me/household/eaters', requireAuth, householdController.listEaters);
+userRouter.put(
+  '/me/household/eaters/:eaterId',
+  requireAuth,
+  validateParams(eaterIdParamSchema),
+  validateBody(putEaterSchema),
+  householdController.putEater,
+);
+userRouter.delete(
+  '/me/household/eaters/:eaterId',
+  requireAuth,
+  validateParams(eaterIdParamSchema),
+  householdController.deleteEater,
+);
+
+// Kitchen equipment. `appliances: null` on GET = never asked.
+userRouter.get('/me/kitchen', requireAuth, householdController.getKitchen);
+userRouter.put('/me/kitchen', requireAuth, validateBody(putKitchenSchema), householdController.putKitchen);
+
+// What's at home, as catalog ingredient ids (see GET /ingredients).
+userRouter.get('/me/pantry', requireAuth, validateQuery(pantryQuerySchema), householdController.getPantry);
+userRouter.put(
+  '/me/pantry',
+  requireAuth,
+  validateQuery(pantryQuerySchema),
+  validateBody(putPantrySchema),
+  householdController.putPantry,
 );

@@ -46,7 +46,10 @@
     { "key": "adminPassword", "value": "PASTE_ADMIN_PASSWORD" },
     { "key": "adminAccessToken", "value": "" },
     { "key": "adminFoodId", "value": "" },
-    { "key": "complaintId", "value": "" }
+    { "key": "complaintId", "value": "" },
+    { "key": "eaterId", "value": "" },
+    { "key": "ingredientId", "value": "" },
+    { "key": "pantryIngredientIds", "value": "[]" }
   ],
   "item": [
     {
@@ -1566,6 +1569,309 @@
               "raw": "{\n  \"status\": \"RESOLVED\"\n}"
             },
             "description": "Resolves or dismisses a complaint (status: RESOLVED | DISMISSED). Stamps resolvedByAdmin (the acting admin) and resolvedAt. Unknown id returns 404 COMPLAINT_NOT_FOUND."
+          }
+        }
+      ]
+    },
+    {
+      "name": "15. Cook Dinner",
+      "item": [
+        {
+          "name": "15.1 Set My Sex & Doctor's Restrictions (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('sex was saved', () => pm.expect(body.user.sex).to.eql('MALE'));",
+                  "pm.test('restrictions were saved', () => pm.expect(body.user.medicalRestrictions).to.eql(['LOW_SALT']));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sex\": \"MALE\",\n  \"medicalRestrictions\": [\"LOW_SALT\"]\n}"
+            },
+            "description": "The account owner is \"me\" at the dinner table: their allergies/diets are the profile's foodExceptions/diets, and sex + doctor's restrictions are these two profile fields. medicalRestrictions replaces the whole list ([] clears it); sex: null clears it."
+          }
+        },
+        {
+          "name": "15.2 Add / Replace Household Eater (protected)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Eater ids are client-generated UUIDs; keep one for the rest of the folder.",
+                  "if (!pm.collectionVariables.get('eaterId')) {",
+                  "  pm.collectionVariables.set('eaterId', pm.variables.replaceIn('{{$guid}}'));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('eater keeps the client-chosen id', () => pm.expect(body.eater.id).to.eql(pm.collectionVariables.get('eaterId')));",
+                  "pm.test('allergen was saved', () => pm.expect(body.eater.allergens).to.include('PEANUTS'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/users/me/household/eaters/{{eaterId}}", "host": ["{{baseUrl}}"], "path": ["users", "me", "household", "eaters", "{{eaterId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Маша\",\n  \"sex\": \"FEMALE\",\n  \"age\": 6,\n  \"likes\": [\"ITALIAN\"],\n  \"avoid\": [\"SPICY\"],\n  \"allergens\": [\"PEANUTS\"],\n  \"diets\": [],\n  \"medicalRestrictions\": []\n}"
+            },
+            "description": "Creates or fully replaces a person the user cooks for, under a UUID the client chooses (so an offline create can be replayed without duplicating). Omitted list fields become []. Unknown allergen → 400; unknown diet → 400 UNKNOWN_DIET; more than 20 eaters → 400 TOO_MANY_EATERS; an id owned by another account → 404 EATER_NOT_FOUND."
+          }
+        },
+        {
+          "name": "15.3 List Household Eaters (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns an eaters array', () => pm.expect(body.eaters).to.be.an('array'));",
+                  "pm.test('contains the eater from 15.2', () => pm.expect(body.eaters.map((e) => e.id)).to.include(pm.collectionVariables.get('eaterId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/users/me/household/eaters", "host": ["{{baseUrl}}"], "path": ["users", "me", "household", "eaters"] },
+            "description": "The people the user cooks for, in the order they were added. The account owner is not in this list."
+          }
+        },
+        {
+          "name": "15.4 Set Kitchen Appliances (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('appliances were saved', () => pm.expect(body.kitchen.appliances).to.have.members(['STOVE', 'OVEN', 'MICROWAVE']));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/users/me/kitchen", "host": ["{{baseUrl}}"], "path": ["users", "me", "kitchen"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appliances\": [\"STOVE\", \"OVEN\", \"MICROWAVE\"]\n}"
+            },
+            "description": "Replaces the equipment list in full. Values: STOVE, OVEN, AIR_FRYER, MICROWAVE, GRILL, MULTICOOKER, BLENDER. [] is a real answer (\"nothing\"), distinct from never having answered."
+          }
+        },
+        {
+          "name": "15.5 Get Kitchen Appliances (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('has a kitchen object', () => pm.expect(body.kitchen).to.have.property('appliances'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/users/me/kitchen", "host": ["{{baseUrl}}"], "path": ["users", "me", "kitchen"] },
+            "description": "kitchen.appliances is null until the user has answered — that's the client's cue to ask."
+          }
+        },
+        {
+          "name": "15.6 Search Ingredients (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns an ingredients array', () => pm.expect(body.ingredients).to.be.an('array'));",
+                  "if (body.ingredients.length) pm.collectionVariables.set('ingredientId', body.ingredients[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/ingredients?search=o&lang=ru", "host": ["{{baseUrl}}"], "path": ["ingredients"], "query": [{"key": "search", "value": "o"},{"key": "lang", "value": "ru"}] },
+            "description": "Searches the ingredient catalog by name in any language (up to 50, alphabetical). Saves the first hit as {{ingredientId}} for 15.7. Empty if no recipe has ingredients yet — add some in the admin panel."
+          }
+        },
+        {
+          "name": "15.7 Set Pantry (protected)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get('ingredientId');",
+                  "pm.collectionVariables.set('pantryIngredientIds', JSON.stringify(id ? [id] : []));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns the pantry', () => pm.expect(body.items).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/users/me/pantry", "host": ["{{baseUrl}}"], "path": ["users", "me", "pantry"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ingredientIds\": {{pantryIngredientIds}}\n}"
+            },
+            "description": "Replaces what the user has at home (presence only). Unknown ingredient id → 400 UNKNOWN_INGREDIENT. Uses {{ingredientId}} from 15.6, or [] if there was none."
+          }
+        },
+        {
+          "name": "15.8 Get Pantry (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns items', () => pm.expect(body.items).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/users/me/pantry?lang=ru", "host": ["{{baseUrl}}"], "path": ["users", "me", "pantry"], "query": [{"key": "lang", "value": "ru"}] },
+            "description": "What the user has at home, with ingredient names resolved to ?lang."
+          }
+        },
+        {
+          "name": "15.9 Dinner Suggestions — me + eater (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns suggestions', () => pm.expect(body.suggestions).to.be.an('array'));",
+                  "pm.test('nothing with peanuts (the eater is allergic)', () => body.suggestions.forEach((s) => pm.expect(s.food.tags.allergens).to.not.include('PEANUTS')));",
+                  "pm.test('nothing spicy (the eater avoids it)', () => body.suggestions.forEach((s) => pm.expect(s.food.tags.features).to.not.include('SPICY')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/dinner/suggestions?eaterIds={{eaterId}}&includeSelf=true&lang=ru", "host": ["{{baseUrl}}"], "path": ["dinner", "suggestions"], "query": [{"key": "eaterIds", "value": "{{eaterId}}"},{"key": "includeSelf", "value": "true"},{"key": "lang", "value": "ru"}] },
+            "description": "Dishes that suit everyone at the table: every eater's allergies/diets/exceptions (the feed's hard filters), taste exceptions as exclusions, doctor's restrictions, and the kitchen's equipment. Each suggestion carries missingIngredients (the shopping list) when the pantry is non-empty."
+          }
+        },
+        {
+          "name": "15.10 Dinner Suggestions — from what's at home (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('within maxMissing', () => body.suggestions.forEach((s) => pm.expect(s.missingIngredients.length).to.be.at.most(2)));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/dinner/suggestions?source=AT_HOME&maxMissing=2&lang=ru", "host": ["{{baseUrl}}"], "path": ["dinner", "suggestions"], "query": [{"key": "source", "value": "AT_HOME"},{"key": "maxMissing", "value": "2"},{"key": "lang", "value": "ru"}] },
+            "description": "Only dishes with an ingredient list where at most maxMissing ingredients are not in the pantry, fewest missing first."
+          }
+        },
+        {
+          "name": "15.11 Delete Household Eater (protected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('was removed', () => pm.expect(body.removed).to.eql(true));",
+                  "pm.collectionVariables.set('eaterId', '');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}" }] },
+            "url": { "raw": "{{baseUrl}}/users/me/household/eaters/{{eaterId}}", "host": ["{{baseUrl}}"], "path": ["users", "me", "household", "eaters", "{{eaterId}}"] },
+            "description": "Idempotent: deleting again returns { removed: false }, never 404."
           }
         }
       ]

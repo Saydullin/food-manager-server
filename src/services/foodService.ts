@@ -19,6 +19,7 @@ import { ensureUserExists } from './userService';
 // validation schemas, and labelService — keep their import path unchanged.
 export {
   ALLERGEN_KEYS,
+  APPLIANCE_KEYS,
   DIET_KEYS,
   FEATURE_KEYS,
   INTOLERANCE_KEYS,
@@ -39,6 +40,8 @@ export interface FoodTags {
   intolerances: string[];
   features: string[];
   diets: string[];
+  /** Equipment the dish needs (KitchenAppliance codes, e.g. "OVEN"); [] = nothing special. */
+  appliances: string[];
 }
 
 export interface FoodNutritionView {
@@ -146,6 +149,7 @@ export const foodInclude = {
   intolerances: true,
   features: true,
   diets: true,
+  appliances: true,
   ingredients: {
     select: {
       id: true,
@@ -191,6 +195,7 @@ const sharedFoodFields = (row: FoodRow) => ({
     intolerances: trueTags(row.intolerances),
     features: trueTags(row.features),
     diets: trueTags(row.diets),
+    appliances: trueTags(row.appliances),
   },
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,

@@ -188,8 +188,8 @@ export const DIET_RULES: Record<string, DietRule> = {
 // Hard filters
 // ---------------------------------------------------------------------------
 
-/** "The dish has this tag row, and this flag on it is true." */
-const requireTag = ({ group, key }: TagTarget): Prisma.FoodWhereInput =>
+/** "The dish has this tag row, and this flag on it is true." Shared with the dinner filters. */
+export const requireTag = ({ group, key }: TagTarget): Prisma.FoodWhereInput =>
   ({ [group]: { is: { [key]: true } } }) as Prisma.FoodWhereInput;
 
 /**
@@ -199,7 +199,7 @@ const requireTag = ({ group, key }: TagTarget): Prisma.FoodWhereInput =>
  * for an exclusion should pass, whereas for a `requires` compliance check the same
  * missing row correctly fails (we won't assert a dish is vegan without being told).
  */
-const excludeTag = (target: TagTarget): Prisma.FoodWhereInput => ({ NOT: requireTag(target) });
+export const excludeTag = (target: TagTarget): Prisma.FoodWhereInput => ({ NOT: requireTag(target) });
 
 /** "The dish has no ingredient line whose name is exactly this, in any language." */
 const excludeIngredientNamed = (value: string): Prisma.FoodWhereInput => ({

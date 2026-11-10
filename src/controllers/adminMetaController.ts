@@ -5,6 +5,7 @@ import { listDiets } from '../services/dietService';
 import { getTagLabels } from '../services/labelService';
 import {
   ALLERGEN_KEYS,
+  APPLIANCE_KEYS,
   DEFAULT_LANGUAGE,
   DIET_KEYS,
   FEATURE_KEYS,
@@ -25,6 +26,7 @@ export const getFoodFormOptions = asyncHandler(async (_req: Request, res: Respon
     intolerances: INTOLERANCE_KEYS,
     features: FEATURE_KEYS,
     foodDiets: DIET_KEYS,
+    appliances: APPLIANCE_KEYS,
     languages: SUPPORTED_LANGUAGES,
   });
 });
