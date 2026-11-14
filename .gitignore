@@ -5,3 +5,6 @@ dist/
 .DS_Store
 coverage/
 /uploads/
+
+# Recipe dataset pipeline state (dataset/README.md); dataset/out is committed
+/dataset/work/

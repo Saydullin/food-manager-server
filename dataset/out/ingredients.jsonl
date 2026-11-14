@@ -1,0 +1,467 @@
+{"code":"canned_kidney_beans","name":{"ru":"Фасоль красная консервированная","en":"Canned kidney beans"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"cherry_tomato","name":{"ru":"Помидоры черри","en":"Cherry tomatoes"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"celery_stalk","name":{"ru":"Сельдерей стеблевой","en":"Celery stalk"},"category":"VEGETABLE","allergens":["CELERY"],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":40}
+{"code":"red_onion","name":{"ru":"Лук красный","en":"Red onion"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":110}
+{"code":"chives","name":{"ru":"Шнитт-лук","en":"Chives"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"bunch","grams_per_unit":30}
+{"code":"parsley","name":{"ru":"Петрушка","en":"Parsley"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"bunch","grams_per_unit":50}
+{"code":"capers","name":{"ru":"Каперсы","en":"Capers"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":9}
+{"code":"canned_tuna","name":{"ru":"Тунец консервированный","en":"Canned tuna"},"category":"CANNED","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"can","grams_per_unit":140}
+{"code":"sweet_paprika","name":{"ru":"Паприка сладкая молотая","en":"Sweet paprika"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2.5}
+{"code":"ground_cumin","name":{"ru":"Зира молотая (кумин)","en":"Ground cumin"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"salt","name":{"ru":"Соль","en":"Salt"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":true,"default_unit":"tsp","grams_per_unit":6}
+{"code":"black_pepper","name":{"ru":"Перец чёрный молотый","en":"Black pepper"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":true,"default_unit":"tsp","grams_per_unit":2.5}
+{"code":"white_wine_vinegar","name":{"ru":"Уксус белый винный","en":"White wine vinegar"},"category":"SAUCE_CONDIMENT","allergens":["SULFITES"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"lemon_juice","name":{"ru":"Лимонный сок","en":"Lemon juice"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"olive_oil","name":{"ru":"Масло оливковое","en":"Olive oil"},"category":"OIL_FAT","allergens":[],"excludes":[],"is_staple":true,"default_unit":"tbsp","grams_per_unit":13.5}
+{"code":"egg","name":{"ru":"Яйцо куриное","en":"Egg"},"category":"EGG","allergens":["EGGS"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"pcs","grams_per_unit":55}
+{"code":"couscous","name":{"ru":"Кускус","en":"Couscous"},"category":"GRAIN","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"spaghetti","name":{"ru":"Спагетти","en":"Spaghetti"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"ricotta","name":{"ru":"Рикотта","en":"Ricotta"},"category":"CHEESE","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"parmesan","name":{"ru":"Пармезан","en":"Parmesan"},"category":"CHEESE","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"mozzarella","name":{"ru":"Моцарелла","en":"Mozzarella"},"category":"CHEESE","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"onion","name":{"ru":"Лук репчатый","en":"Onion"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":100}
+{"code":"garlic","name":{"ru":"Чеснок","en":"Garlic"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"clove","grams_per_unit":5}
+{"code":"carrot","name":{"ru":"Морковь","en":"Carrot"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":100}
+{"code":"canned_tomatoes","name":{"ru":"Томаты консервированные в собственном соку","en":"Canned tomatoes"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"can","grams_per_unit":400}
+{"code":"water","name":{"ru":"Вода","en":"Water"},"category":"OTHER","allergens":[],"excludes":[],"is_staple":true,"default_unit":"ml","grams_per_unit":null}
+{"code":"dried_oregano","name":{"ru":"Орегано сушёный","en":"Dried oregano"},"category":"HERB_DRIED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":1}
+{"code":"basil","name":{"ru":"Базилик свежий","en":"Fresh basil"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"bunch","grams_per_unit":30}
+{"code":"chili_flakes","name":{"ru":"Хлопья острого перца чили","en":"Chilli flakes"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"potato","name":{"ru":"Картофель","en":"Potato"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":150}
+{"code":"garlic_herb_soft_cheese","name":{"ru":"Мягкий сыр с чесноком и травами","en":"Garlic and herb soft cheese"},"category":"CHEESE","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"milk","name":{"ru":"Молоко","en":"Milk"},"category":"DAIRY","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"heavy_cream","name":{"ru":"Сливки 33–35%","en":"Heavy cream"},"category":"DAIRY","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"thyme","name":{"ru":"Тимьян свежий","en":"Fresh thyme"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"sprig","grams_per_unit":1}
+{"code":"butter","name":{"ru":"Масло сливочное","en":"Butter"},"category":"DAIRY","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"tbsp","grams_per_unit":14}
+{"code":"sugar","name":{"ru":"Сахар","en":"Sugar"},"category":"SWEETENER","allergens":[],"excludes":[],"is_staple":true,"default_unit":"tsp","grams_per_unit":4}
+{"code":"active_dry_yeast","name":{"ru":"Дрожжи сухие активные","en":"Active dry yeast"},"category":"BAKING","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"wheat_flour","name":{"ru":"Мука пшеничная","en":"Wheat flour"},"category":"FLOUR","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":true,"default_unit":"g","grams_per_unit":null}
+{"code":"zaatar","name":{"ru":"Заатар (смесь специй)","en":"Za'atar"},"category":"SPICE","allergens":["SESAME"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":6}
+{"code":"tomato","name":{"ru":"Помидор","en":"Tomato"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":120}
+{"code":"cucumber","name":{"ru":"Огурец","en":"Cucumber"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":120}
+{"code":"olives","name":{"ru":"Оливки","en":"Olives"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"tomato_paste","name":{"ru":"Томатная паста","en":"Tomato paste"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":18}
+{"code":"chicken_stock","name":{"ru":"Куриный бульон","en":"Chicken stock"},"category":"OTHER","allergens":["CELERY"],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"sun_dried_tomatoes","name":{"ru":"Вяленые томаты","en":"Sun-dried tomatoes"},"category":"VEGETABLE","allergens":["SULFITES"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"fusilli","name":{"ru":"Паста фузилли","en":"Fusilli pasta"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"cooked_chicken","name":{"ru":"Курица варёная или запечённая","en":"Cooked chicken"},"category":"POULTRY","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"hard_cheese","name":{"ru":"Сыр твёрдый","en":"Hard cheese"},"category":"CHEESE","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"dijon_mustard","name":{"ru":"Горчица дижонская","en":"Dijon mustard"},"category":"SAUCE_CONDIMENT","allergens":["MUSTARD"],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":5}
+{"code":"ground_nutmeg","name":{"ru":"Мускатный орех молотый","en":"Ground nutmeg"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2.5}
+{"code":"white_bread","name":{"ru":"Хлеб белый (тостовый)","en":"White bread"},"category":"BREAD","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"slice","grams_per_unit":30}
+{"code":"ham","name":{"ru":"Ветчина","en":"Ham"},"category":"SAUSAGE","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","HALAL","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"eggplant","name":{"ru":"Баклажан","en":"Eggplant"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":300}
+{"code":"lime_juice","name":{"ru":"Сок лайма","en":"Lime juice"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"strawberry","name":{"ru":"Клубника","en":"Strawberries"},"category":"BERRY","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"baguette","name":{"ru":"Багет","en":"Baguette"},"category":"BREAD","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"maple_syrup","name":{"ru":"Кленовый сироп","en":"Maple syrup"},"category":"SWEETENER","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":20}
+{"code":"icing_sugar","name":{"ru":"Сахарная пудра","en":"Icing sugar"},"category":"SWEETENER","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":3}
+{"code":"flour_tortilla","name":{"ru":"Тортилья пшеничная","en":"Flour tortilla"},"category":"BREAD","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":45}
+{"code":"red_bell_pepper","name":{"ru":"Перец болгарский красный","en":"Red bell pepper"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":150}
+{"code":"cilantro","name":{"ru":"Кинза","en":"Coriander (cilantro)"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"bunch","grams_per_unit":40}
+{"code":"canned_black_beans","name":{"ru":"Фасоль чёрная консервированная","en":"Canned black beans"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"ground_coriander","name":{"ru":"Кориандр молотый","en":"Ground coriander"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"tomato_sauce","name":{"ru":"Томатный соус (пассата)","en":"Tomato sauce (passata)"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"white_vinegar","name":{"ru":"Уксус столовый","en":"White vinegar"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":true,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"brown_lentils","name":{"ru":"Чечевица коричневая","en":"Brown lentils"},"category":"LEGUME","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"rice","name":{"ru":"Рис","en":"Rice"},"category":"GRAIN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"elbow_pasta","name":{"ru":"Макароны-рожки","en":"Elbow pasta"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"canned_chickpeas","name":{"ru":"Нут консервированный","en":"Canned chickpeas"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"vegetable_oil","name":{"ru":"Масло растительное","en":"Vegetable oil"},"category":"OIL_FAT","allergens":[],"excludes":[],"is_staple":true,"default_unit":"tbsp","grams_per_unit":13.5}
+{"code":"beef_stew_meat","name":{"ru":"Говядина для тушения","en":"Beef stew meat"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"ground_allspice","name":{"ru":"Душистый перец молотый","en":"Ground allspice"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"ground_cinnamon","name":{"ru":"Корица молотая","en":"Ground cinnamon"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2.5}
+{"code":"bay_leaf","name":{"ru":"Лавровый лист","en":"Bay leaf"},"category":"HERB_DRIED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"leaf","grams_per_unit":0.5}
+{"code":"frozen_green_beans","name":{"ru":"Стручковая фасоль замороженная","en":"Frozen green beans"},"category":"FROZEN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"pine_nuts","name":{"ru":"Кедровые орехи","en":"Pine nuts"},"category":"NUT","allergens":["TREE_NUTS"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"linguine","name":{"ru":"Паста лингвини","en":"Linguine"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"egg_yolk","name":{"ru":"Желток куриный","en":"Egg yolk"},"category":"EGG","allergens":["EGGS"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"pcs","grams_per_unit":18}
+{"code":"pecorino","name":{"ru":"Пекорино романо","en":"Pecorino Romano"},"category":"CHEESE","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"pork_sausage","name":{"ru":"Колбаски свиные сырые","en":"Pork sausages"},"category":"SAUSAGE","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","HALAL","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"ground_beef","name":{"ru":"Фарш говяжий","en":"Ground beef"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"breadcrumbs","name":{"ru":"Панировочные сухари","en":"Breadcrumbs"},"category":"BREAD","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"sauerkraut_leaves","name":{"ru":"Квашеная капуста (листья)","en":"Sauerkraut leaves"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"pancetta","name":{"ru":"Грудинка копчёная (панчетта)","en":"Smoked pancetta"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","HALAL","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"smoked_paprika","name":{"ru":"Паприка копчёная","en":"Smoked paprika"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2.5}
+{"code":"dried_dill","name":{"ru":"Укроп сушёный","en":"Dried dill"},"category":"HERB_DRIED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":1}
+{"code":"dried_thyme","name":{"ru":"Тимьян сушёный","en":"Dried thyme"},"category":"HERB_DRIED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":1}
+{"code":"ground_pork","name":{"ru":"Фарш свиной","en":"Ground pork"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","HALAL","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"sour_cream","name":{"ru":"Сметана","en":"Sour cream"},"category":"DAIRY","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"leek","name":{"ru":"Лук-порей","en":"Leek"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":150}
+{"code":"vegetable_stock","name":{"ru":"Овощной бульон","en":"Vegetable stock"},"category":"OTHER","allergens":["CELERY"],"excludes":[],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"mushrooms","name":{"ru":"Шампиньоны","en":"Mushrooms"},"category":"MUSHROOM","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"beef_stock","name":{"ru":"Говяжий бульон","en":"Beef stock"},"category":"OTHER","allergens":["CELERY"],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"red_wine_vinegar","name":{"ru":"Уксус красный винный","en":"Red wine vinegar"},"category":"SAUCE_CONDIMENT","allergens":["SULFITES"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"worcestershire_sauce","name":{"ru":"Вустерский соус","en":"Worcestershire sauce"},"category":"SAUCE_CONDIMENT","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"tsp","grams_per_unit":5}
+{"code":"soy_sauce","name":{"ru":"Соевый соус","en":"Soy sauce"},"category":"SAUCE_CONDIMENT","allergens":["SOY","WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":16}
+{"code":"pappardelle","name":{"ru":"Паста паппарделле","en":"Pappardelle"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"lemon","name":{"ru":"Лимон","en":"Lemon"},"category":"FRUIT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":100}
+{"code":"beetroot","name":{"ru":"Свёкла","en":"Beetroot"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":200}
+{"code":"white_cabbage","name":{"ru":"Капуста белокочанная","en":"White cabbage"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"kefir","name":{"ru":"Кефир","en":"Kefir"},"category":"DAIRY","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"ground_chicken","name":{"ru":"Фарш куриный","en":"Ground chicken"},"category":"POULTRY","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"tvorog","name":{"ru":"Творог","en":"Farmers cheese (tvorog)"},"category":"DAIRY","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"baking_soda","name":{"ru":"Сода пищевая","en":"Baking soda"},"category":"BAKING","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":4}
+{"code":"raisins","name":{"ru":"Изюм","en":"Raisins"},"category":"FRUIT","allergens":["SULFITES"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"sauerkraut","name":{"ru":"Квашеная капуста","en":"Sauerkraut"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"pickled_cucumber","name":{"ru":"Огурцы солёные","en":"Pickled cucumbers"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":70}
+{"code":"light_cream","name":{"ru":"Сливки 10–20%","en":"Light cream (half and half)"},"category":"DAIRY","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"green_onion","name":{"ru":"Лук зелёный","en":"Green onion"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"bunch","grams_per_unit":50}
+{"code":"dill","name":{"ru":"Укроп свежий","en":"Fresh dill"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"bunch","grams_per_unit":30}
+{"code":"bell_pepper","name":{"ru":"Перец болгарский","en":"Bell pepper"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":150}
+{"code":"ground_turkey","name":{"ru":"Фарш индейки","en":"Ground turkey"},"category":"POULTRY","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"bacon","name":{"ru":"Бекон","en":"Bacon"},"category":"SAUSAGE","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","HALAL","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"canned_white_beans","name":{"ru":"Фасоль белая консервированная","en":"Canned white beans"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"mayonnaise","name":{"ru":"Майонез","en":"Mayonnaise"},"category":"SAUCE_CONDIMENT","allergens":["EGGS","MUSTARD"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"baking_powder","name":{"ru":"Разрыхлитель теста","en":"Baking powder"},"category":"BAKING","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":4}
+{"code":"cornstarch","name":{"ru":"Крахмал кукурузный","en":"Cornstarch"},"category":"BAKING","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":3}
+{"code":"white_fish_fillet","name":{"ru":"Филе белой рыбы (тилапия)","en":"White fish fillet (tilapia)"},"category":"FISH","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"shrimp","name":{"ru":"Креветки","en":"Shrimp"},"category":"SEAFOOD","allergens":["SHELLFISH"],"excludes":["VEGETARIAN","VEGAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"crab_sticks","name":{"ru":"Крабовые палочки (сурими)","en":"Imitation crab sticks"},"category":"SEAFOOD","allergens":["FISH","SHELLFISH","EGGS","WHEAT","GLUTEN"],"excludes":["VEGETARIAN","VEGAN","KOSHER","HALAL"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"horseradish_sauce","name":{"ru":"Хрен столовый (сливочный)","en":"Creamed horseradish"},"category":"SAUCE_CONDIMENT","allergens":["MILK","EGGS","MUSTARD"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"tsp","grams_per_unit":5}
+{"code":"canned_corn","name":{"ru":"Кукуруза консервированная","en":"Canned corn"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"canned_peas","name":{"ru":"Горошек зелёный консервированный","en":"Canned peas"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"radish","name":{"ru":"Редис","en":"Radish"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"bunch","grams_per_unit":150}
+{"code":"prepared_mustard","name":{"ru":"Горчица готовая","en":"Prepared mustard"},"category":"SAUCE_CONDIMENT","allergens":["MUSTARD"],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":5}
+{"code":"chicken_bouillon","name":{"ru":"Куриный бульонный концентрат","en":"Chicken bouillon"},"category":"OTHER","allergens":["CELERY"],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"tsp","grams_per_unit":5}
+{"code":"jalapeno","name":{"ru":"Перец халапеньо","en":"Jalapeño pepper"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":15}
+{"code":"tomato_salsa","name":{"ru":"Томатная сальса","en":"Tomato salsa"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"zucchini","name":{"ru":"Кабачок","en":"Zucchini"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"balsamic_vinegar","name":{"ru":"Уксус бальзамический","en":"Balsamic vinegar"},"category":"SAUCE_CONDIMENT","allergens":["SULFITES"],"excludes":[],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"brown_sugar","name":{"ru":"Сахар коричневый","en":"Brown sugar"},"category":"SWEETENER","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":12}
+{"code":"sesame_seeds","name":{"ru":"Кунжут","en":"Sesame seeds"},"category":"SEED","allergens":["SESAME"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":3}
+{"code":"dried_mint","name":{"ru":"Мята сушёная","en":"Dried mint"},"category":"HERB_DRIED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":1}
+{"code":"watermelon","name":{"ru":"Арбуз","en":"Watermelon"},"category":"FRUIT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"feta","name":{"ru":"Фета","en":"Feta"},"category":"CHEESE","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"mint","name":{"ru":"Мята свежая","en":"Fresh mint"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"green_beans","name":{"ru":"Фасоль стручковая свежая","en":"Green beans"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"frozen_corn","name":{"ru":"Кукуруза замороженная","en":"Frozen sweet corn"},"category":"FROZEN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"frozen_peas","name":{"ru":"Горошек зелёный замороженный","en":"Frozen peas"},"category":"FROZEN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"red_wine","name":{"ru":"Вино красное сухое","en":"Dry red wine"},"category":"ALCOHOL","allergens":["SULFITES"],"excludes":["HALAL","VEGAN"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"chicken_pieces","name":{"ru":"Курица на кости (части)","en":"Bone-in chicken pieces"},"category":"POULTRY","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"egg_noodles","name":{"ru":"Яичная лапша","en":"Egg noodles"},"category":"PASTA","allergens":["WHEAT","GLUTEN","EGGS"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"chicken_thigh","name":{"ru":"Куриные бёдра","en":"Chicken thighs"},"category":"POULTRY","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"white_wine","name":{"ru":"Вино белое сухое","en":"Dry white wine"},"category":"ALCOHOL","allergens":["SULFITES"],"excludes":["HALAL","VEGAN"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"ketchup","name":{"ru":"Кетчуп","en":"Ketchup"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":17}
+{"code":"italian_seasoning","name":{"ru":"Итальянские травы (смесь)","en":"Italian seasoning"},"category":"HERB_DRIED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":1.5}
+{"code":"garlic_powder","name":{"ru":"Чеснок сушёный молотый","en":"Garlic powder"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":3}
+{"code":"onion_powder","name":{"ru":"Лук сушёный молотый","en":"Onion powder"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2.5}
+{"code":"pork_loin","name":{"ru":"Свинина (корейка, филе)","en":"Pork loin / boneless pork chops"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER","HALAL"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"rye_bread","name":{"ru":"Хлеб ржаной (чёрный)","en":"Rye bread"},"category":"BREAD","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"slice","grams_per_unit":30}
+{"code":"pearl_barley","name":{"ru":"Крупа перловая","en":"Pearl barley"},"category":"GRAIN","allergens":["GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"whole_fish","name":{"ru":"Рыба целая (форель, окунь, лосось)","en":"Whole fish"},"category":"FISH","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"pork_shoulder","name":{"ru":"Свинина (лопатка, шея)","en":"Pork shoulder"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER","HALAL"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"whole_chicken","name":{"ru":"Курица целая","en":"Whole chicken"},"category":"POULTRY","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"cream_cheese","name":{"ru":"Сливочный сыр","en":"Cream cheese"},"category":"CHEESE","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"trout","name":{"ru":"Форель","en":"Trout"},"category":"FISH","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"coriander_seeds","name":{"ru":"Кориандр семена","en":"Coriander seeds"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"chicken_breast","name":{"ru":"Куриное филе (грудка)","en":"Chicken breast"},"category":"POULTRY","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"cheddar","name":{"ru":"Сыр чеддер","en":"Cheddar cheese"},"category":"CHEESE","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"mustard_powder","name":{"ru":"Горчичный порошок","en":"Mustard powder"},"category":"SPICE","allergens":["MUSTARD"],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"chili_powder","name":{"ru":"Перец чили молотый","en":"Chili powder"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":3}
+{"code":"shallot","name":{"ru":"Лук-шалот","en":"Shallot"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":40}
+{"code":"cod_fillet","name":{"ru":"Филе трески","en":"Cod fillet"},"category":"FISH","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"broccoli","name":{"ru":"Брокколи","en":"Broccoli"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"cauliflower","name":{"ru":"Цветная капуста","en":"Cauliflower"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"ginger","name":{"ru":"Имбирь свежий","en":"Fresh ginger"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":5}
+{"code":"cashews","name":{"ru":"Кешью","en":"Cashews"},"category":"NUT","allergens":["TREE_NUTS"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"honey","name":{"ru":"Мёд","en":"Honey"},"category":"SWEETENER","allergens":[],"excludes":["VEGAN"],"is_staple":false,"default_unit":"tbsp","grams_per_unit":21}
+{"code":"cayenne_pepper","name":{"ru":"Перец кайенский молотый","en":"Cayenne pepper"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"goat_cheese","name":{"ru":"Козий сыр","en":"Goat cheese"},"category":"CHEESE","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"arugula","name":{"ru":"Руккола","en":"Arugula"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"cloves","name":{"ru":"Гвоздика (бутоны)","en":"Whole cloves"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":0.1}
+{"code":"cooked_turkey","name":{"ru":"Индейка варёная или запечённая","en":"Cooked turkey"},"category":"POULTRY","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"lamb_shoulder","name":{"ru":"Баранина (лопатка, окорок)","en":"Lamb shoulder"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"salmon_fillet","name":{"ru":"Филе лосося","en":"Salmon fillet"},"category":"FISH","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"beef_sirloin","name":{"ru":"Говядина (вырезка, толстый край)","en":"Beef sirloin"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"frozen_mixed_vegetables","name":{"ru":"Овощная смесь замороженная (горошек, морковь, кукуруза)","en":"Frozen mixed vegetables"},"category":"FROZEN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"kale","name":{"ru":"Капуста кейл","en":"Kale"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"apple","name":{"ru":"Яблоко","en":"Apple"},"category":"FRUIT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":180}
+{"code":"apple_cider_vinegar","name":{"ru":"Уксус яблочный","en":"Apple cider vinegar"},"category":"SAUCE_CONDIMENT","allergens":["SULFITES"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"buckwheat","name":{"ru":"Гречневая крупа","en":"Buckwheat"},"category":"GRAIN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"dried_mushrooms","name":{"ru":"Грибы сушёные","en":"Dried mushrooms"},"category":"MUSHROOM","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"five_spice_powder","name":{"ru":"Смесь пяти специй китайская","en":"Chinese five spice powder"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"rice_paper","name":{"ru":"Рисовая бумага","en":"Rice paper wrappers"},"category":"OTHER","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":9}
+{"code":"beef_brisket","name":{"ru":"Говяжья грудинка","en":"Beef brisket"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"cooked_rice","name":{"ru":"Рис варёный","en":"Cooked rice"},"category":"GRAIN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"chinese_cooking_wine","name":{"ru":"Китайское кулинарное вино (шаосинское)","en":"Chinese cooking wine"},"category":"ALCOHOL","allergens":["WHEAT","GLUTEN","SULFITES"],"excludes":["HALAL","VEGAN"],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"oyster_sauce","name":{"ru":"Устричный соус","en":"Oyster sauce"},"category":"SAUCE_CONDIMENT","allergens":["MOLLUSCS","SOY","WHEAT","GLUTEN"],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"tbsp","grams_per_unit":18}
+{"code":"sesame_oil","name":{"ru":"Масло кунжутное","en":"Sesame oil"},"category":"OIL_FAT","allergens":["SESAME"],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":4.5}
+{"code":"white_pepper","name":{"ru":"Перец белый молотый","en":"White pepper"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2.5}
+{"code":"curry_powder","name":{"ru":"Порошок карри","en":"Curry powder"},"category":"SPICE","allergens":["MUSTARD","CELERY"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":6}
+{"code":"coconut_milk","name":{"ru":"Кокосовое молоко","en":"Coconut milk"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"pumpkin","name":{"ru":"Тыква","en":"Pumpkin"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"canned_lentils","name":{"ru":"Чечевица консервированная","en":"Canned lentils"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"ground_turmeric","name":{"ru":"Куркума молотая","en":"Ground turmeric"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":3}
+{"code":"tahini","name":{"ru":"Тахини (кунжутная паста)","en":"Tahini"},"category":"SAUCE_CONDIMENT","allergens":["SESAME"],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":5}
+{"code":"chinese_cabbage","name":{"ru":"Капуста пекинская","en":"Chinese cabbage"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"bean_sprouts","name":{"ru":"Ростки фасоли (маша)","en":"Bean sprouts"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"tofu","name":{"ru":"Тофу","en":"Tofu"},"category":"OTHER","allergens":["SOY"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"hoisin_sauce","name":{"ru":"Соус хойсин","en":"Hoisin sauce"},"category":"SAUCE_CONDIMENT","allergens":["SOY","WHEAT","GLUTEN","SESAME"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":18}
+{"code":"sriracha","name":{"ru":"Соус шрирача (острый чили)","en":"Sriracha"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"greek_yogurt","name":{"ru":"Греческий йогурт","en":"Greek yogurt"},"category":"DAIRY","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"red_lentils","name":{"ru":"Чечевица красная","en":"Red lentils"},"category":"LEGUME","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"rosemary","name":{"ru":"Розмарин свежий","en":"Fresh rosemary"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"sprig","grams_per_unit":3}
+{"code":"beef_bouillon","name":{"ru":"Говяжий бульонный кубик","en":"Beef stock cube"},"category":"OTHER","allergens":["CELERY"],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":10}
+{"code":"red_chili_pepper","name":{"ru":"Перец чили красный свежий","en":"Red chilli pepper"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":15}
+{"code":"dried_marjoram","name":{"ru":"Майоран сушёный","en":"Dried marjoram"},"category":"HERB_DRIED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":1}
+{"code":"yogurt","name":{"ru":"Йогурт натуральный","en":"Natural yogurt"},"category":"DAIRY","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"ground_cardamom","name":{"ru":"Кардамон молотый","en":"Ground cardamom"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"almonds","name":{"ru":"Миндаль","en":"Almonds"},"category":"NUT","allergens":["TREE_NUTS"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"pita_bread","name":{"ru":"Пита (лепёшка)","en":"Pita bread"},"category":"BREAD","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":60}
+{"code":"ground_fennel","name":{"ru":"Фенхель молотый","en":"Ground fennel"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"spinach","name":{"ru":"Шпинат","en":"Spinach"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"roasted_red_peppers","name":{"ru":"Перец красный печёный (консервированный)","en":"Roasted red peppers"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"dried_rosemary","name":{"ru":"Розмарин сушёный","en":"Dried rosemary"},"category":"HERB_DRIED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":1}
+{"code":"dried_figs","name":{"ru":"Инжир сушёный","en":"Dried figs"},"category":"FRUIT","allergens":["SULFITES"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"garam_masala","name":{"ru":"Гарам масала","en":"Garam masala"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"dried_chickpeas","name":{"ru":"Нут сухой","en":"Dried chickpeas"},"category":"LEGUME","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"orzo","name":{"ru":"Паста орзо","en":"Orzo pasta"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"pomegranate_molasses","name":{"ru":"Гранатовый соус (наршараб)","en":"Pomegranate molasses"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":20}
+{"code":"swede","name":{"ru":"Брюква","en":"Swede (rutabaga)"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"dried_cranberries","name":{"ru":"Клюква сушёная","en":"Dried cranberries"},"category":"FRUIT","allergens":["SULFITES"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"steel_cut_oats","name":{"ru":"Овсяная крупа цельная","en":"Steel-cut oats"},"category":"GRAIN","allergens":["GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"fresh_berries","name":{"ru":"Ягоды и фрукты свежие","en":"Fresh berries and fruit"},"category":"BERRY","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"celery_salt","name":{"ru":"Сельдерейная соль","en":"Celery salt"},"category":"SPICE","allergens":["CELERY"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":18}
+{"code":"ground_ginger","name":{"ru":"Имбирь молотый","en":"Ground ginger"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":1.8}
+{"code":"dried_basil","name":{"ru":"Базилик сушёный","en":"Dried basil"},"category":"HERB_DRIED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":0.7}
+{"code":"cornmeal","name":{"ru":"Кукурузная мука (крупного помола)","en":"Cornmeal"},"category":"FLOUR","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"ghee","name":{"ru":"Топлёное масло (гхи)","en":"Ghee"},"category":"OIL_FAT","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"tbsp","grams_per_unit":14}
+{"code":"cinnamon_stick","name":{"ru":"Корица палочки","en":"Cinnamon sticks"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":3}
+{"code":"rigatoni","name":{"ru":"Паста ригатони","en":"Rigatoni"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"vanilla_extract","name":{"ru":"Экстракт ванили","en":"Vanilla extract"},"category":"BAKING","allergens":[],"excludes":["HALAL"],"is_staple":false,"default_unit":"tsp","grams_per_unit":4}
+{"code":"pistachios","name":{"ru":"Фисташки","en":"Pistachios"},"category":"NUT","allergens":["TREE_NUTS"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"sage","name":{"ru":"Шалфей свежий","en":"Fresh sage"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"pizza_dough","name":{"ru":"Тесто для пиццы","en":"Pizza dough"},"category":"BAKING","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"hummus","name":{"ru":"Хумус","en":"Hummus"},"category":"SAUCE_CONDIMENT","allergens":["SESAME"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"smoked_salmon","name":{"ru":"Лосось слабосолёный/копчёный","en":"Smoked salmon"},"category":"FISH","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"asparagus","name":{"ru":"Спаржа","en":"Asparagus"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"turkey_breast","name":{"ru":"Грудка индейки","en":"Turkey breast"},"category":"POULTRY","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"saffron","name":{"ru":"Шафран молотый","en":"Saffron"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":0.7}
+{"code":"orange_juice","name":{"ru":"Апельсиновый сок","en":"Orange juice"},"category":"BEVERAGE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"brown_rice","name":{"ru":"Рис бурый","en":"Brown rice"},"category":"GRAIN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"lime","name":{"ru":"Лайм","en":"Lime"},"category":"FRUIT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":70}
+{"code":"romaine_lettuce","name":{"ru":"Салат ромэн","en":"Romaine lettuce"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"sweet_potato","name":{"ru":"Батат","en":"Sweet potato"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"phyllo_dough","name":{"ru":"Тесто филло","en":"Phyllo dough"},"category":"BAKING","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"turkey_sausage","name":{"ru":"Колбаски из индейки","en":"Turkey sausage"},"category":"SAUSAGE","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"fennel_seeds","name":{"ru":"Семена фенхеля","en":"Fennel seeds"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"hamburger_bun","name":{"ru":"Булочка для бургера","en":"Hamburger bun"},"category":"BREAD","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":60}
+{"code":"sugar_snap_peas","name":{"ru":"Сахарный горох (стручки)","en":"Sugar snap peas"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"butternut_squash","name":{"ru":"Тыква мускатная","en":"Butternut squash"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"poppy_seeds","name":{"ru":"Мак пищевой","en":"Poppy seeds"},"category":"SEED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":3}
+{"code":"teriyaki_sauce","name":{"ru":"Соус терияки","en":"Teriyaki sauce"},"category":"SAUCE_CONDIMENT","allergens":["SOY","WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":18}
+{"code":"brussels_sprouts","name":{"ru":"Брюссельская капуста","en":"Brussels sprouts"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"rice_vinegar","name":{"ru":"Уксус рисовый","en":"Rice vinegar"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"sweet_chili_sauce","name":{"ru":"Сладкий соус чили","en":"Sweet chilli sauce"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"lemon_pepper","name":{"ru":"Лимонный перец (приправа)","en":"Lemon pepper seasoning"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":6}
+{"code":"rice_vermicelli","name":{"ru":"Лапша рисовая тонкая (вермишель)","en":"Rice vermicelli"},"category":"PASTA","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"red_cabbage","name":{"ru":"Капуста краснокочанная","en":"Red cabbage"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"peanut_butter","name":{"ru":"Арахисовая паста","en":"Peanut butter"},"category":"NUT","allergens":["PEANUTS"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":16}
+{"code":"aleppo_pepper","name":{"ru":"Перец алеппо (хлопья)","en":"Aleppo pepper"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"pomegranate","name":{"ru":"Гранат","en":"Pomegranate"},"category":"FRUIT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":280}
+{"code":"nori","name":{"ru":"Нори (листы водорослей)","en":"Nori sheets"},"category":"OTHER","allergens":[],"excludes":[],"is_staple":false,"default_unit":"leaf","grams_per_unit":3}
+{"code":"edamame","name":{"ru":"Эдамаме (молодые бобы сои)","en":"Edamame"},"category":"LEGUME","allergens":["SOY"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"avocado","name":{"ru":"Авокадо","en":"Avocado"},"category":"FRUIT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":170}
+{"code":"chicken_drumstick","name":{"ru":"Куриные голени","en":"Chicken drumsticks"},"category":"POULTRY","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"sorrel","name":{"ru":"Щавель","en":"Sorrel"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"ditalini_pasta","name":{"ru":"Паста дитали (мелкие трубочки)","en":"Ditalini pasta"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"boiled_sausage","name":{"ru":"Колбаса варёная (докторская)","en":"Boiled sausage (bologna)"},"category":"SAUSAGE","allergens":["MILK","EGGS","SOY"],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER","HALAL"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"pickle_brine","name":{"ru":"Рассол от солёных огурцов","en":"Pickle brine"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"prosciutto","name":{"ru":"Прошутто (сыровяленая ветчина)","en":"Prosciutto"},"category":"SAUSAGE","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER","HALAL"],"is_staple":false,"default_unit":"slice","grams_per_unit":10}
+{"code":"penne_pasta","name":{"ru":"Паста пенне","en":"Penne pasta"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"split_peas","name":{"ru":"Горох колотый сухой","en":"Dried split peas"},"category":"LEGUME","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"sumac","name":{"ru":"Сумах молотый","en":"Ground sumac"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"mackerel","name":{"ru":"Скумбрия","en":"Mackerel"},"category":"FISH","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"canned_artichoke_hearts","name":{"ru":"Сердцевины артишока консервированные","en":"Canned artichoke hearts"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"thai_red_curry_paste","name":{"ru":"Паста карри красная тайская","en":"Thai red curry paste"},"category":"SAUCE_CONDIMENT","allergens":["SHELLFISH"],"excludes":["VEGETARIAN","VEGAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":17}
+{"code":"lemongrass_paste","name":{"ru":"Лемонграсс (паста)","en":"Lemongrass paste"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"kaffir_lime_leaves","name":{"ru":"Листья каффир-лайма","en":"Kaffir lime leaves"},"category":"HERB_DRIED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"leaf","grams_per_unit":1}
+{"code":"fish_sauce","name":{"ru":"Рыбный соус","en":"Fish sauce"},"category":"SAUCE_CONDIMENT","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"tsp","grams_per_unit":6}
+{"code":"kecap_manis","name":{"ru":"Кецап манис (сладкий соевый соус)","en":"Kecap manis (sweet soy sauce)"},"category":"SAUCE_CONDIMENT","allergens":["SOY","WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":18}
+{"code":"ham_hock","name":{"ru":"Рулька свиная копчёная","en":"Smoked ham hock"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","HALAL","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"farro","name":{"ru":"Фарро (полба)","en":"Farro"},"category":"GRAIN","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"chicken_sausage","name":{"ru":"Колбаски куриные готовые","en":"Cooked chicken sausage"},"category":"SAUSAGE","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"ground_lamb","name":{"ru":"Фарш из баранины","en":"Ground lamb"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"pepperoncini","name":{"ru":"Перец пепперончини маринованный","en":"Pickled pepperoncini"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"gruyere","name":{"ru":"Грюйер (твёрдый сыр)","en":"Gruyère cheese"},"category":"CHEESE","allergens":["MILK"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"pumpkin_seeds","name":{"ru":"Тыквенные семечки очищенные","en":"Pumpkin seeds (pepitas)"},"category":"SEED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"ras_el_hanout","name":{"ru":"Рас-эль-ханут (смесь специй)","en":"Ras el hanout"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"dried_apricots","name":{"ru":"Курага","en":"Dried apricots"},"category":"FRUIT","allergens":["SULFITES"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"salad_greens","name":{"ru":"Салатные листья (смесь)","en":"Salad greens"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"rolled_oats","name":{"ru":"Овсяные хлопья","en":"Rolled oats"},"category":"GRAIN","allergens":["GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"banana","name":{"ru":"Банан","en":"Banana"},"category":"FRUIT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":120}
+{"code":"blueberries","name":{"ru":"Голубика (черника садовая)","en":"Blueberries"},"category":"BERRY","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"chorizo","name":{"ru":"Чоризо (копчёная колбаса)","en":"Chorizo"},"category":"SAUSAGE","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER","HALAL"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"marsala_wine","name":{"ru":"Вино марсала","en":"Marsala wine"},"category":"ALCOHOL","allergens":["SULFITES"],"excludes":["HALAL"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"canned_salmon","name":{"ru":"Лосось консервированный","en":"Canned salmon"},"category":"CANNED","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"cocoa_powder","name":{"ru":"Какао-порошок","en":"Unsweetened cocoa powder"},"category":"BAKING","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":3}
+{"code":"canned_pinto_beans","name":{"ru":"Фасоль пинто консервированная","en":"Canned pinto beans"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"can","grams_per_unit":425}
+{"code":"lasagna_sheets","name":{"ru":"Листы для лазаньи","en":"Lasagna noodles"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":28}
+{"code":"gluten_free_flour","name":{"ru":"Мука безглютеновая (смесь)","en":"Gluten-free plain flour"},"category":"FLOUR","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"canned_fava_beans","name":{"ru":"Конские бобы консервированные","en":"Canned fava beans"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"can","grams_per_unit":400}
+{"code":"nutritional_yeast","name":{"ru":"Пищевые дрожжи (хлопья)","en":"Nutritional yeast"},"category":"BAKING","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":5}
+{"code":"bbq_sauce","name":{"ru":"Соус барбекю","en":"BBQ sauce"},"category":"SAUCE_CONDIMENT","allergens":["MUSTARD","CELERY"],"excludes":[],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"cumin_seeds","name":{"ru":"Зира (кумин) в зёрнах","en":"Cumin seeds"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"vegetable_bouillon","name":{"ru":"Овощной бульонный кубик","en":"Vegetable stock cube"},"category":"OTHER","allergens":["CELERY"],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":10}
+{"code":"dried_onion_flakes","name":{"ru":"Лук сушёный хлопьями","en":"Dried onion flakes"},"category":"HERB_DRIED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"semolina","name":{"ru":"Манная крупа","en":"Semolina (cream of wheat)"},"category":"GRAIN","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"turkey_kielbasa","name":{"ru":"Колбаса из индейки (кильбаса)","en":"Turkey kielbasa"},"category":"SAUSAGE","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"quinoa","name":{"ru":"Киноа","en":"Quinoa"},"category":"GRAIN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"almond_butter","name":{"ru":"Миндальная паста","en":"Almond butter"},"category":"NUT","allergens":["TREE_NUTS"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"cornflake_crumbs","name":{"ru":"Кукурузные хлопья (для панировки)","en":"Cornflake crumbs"},"category":"GRAIN","allergens":["GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"corn_tortilla","name":{"ru":"Тортилья кукурузная","en":"Corn tortilla"},"category":"BREAD","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":25}
+{"code":"pesto","name":{"ru":"Соус песто","en":"Pesto"},"category":"SAUCE_CONDIMENT","allergens":["MILK","TREE_NUTS"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"bulgur","name":{"ru":"Булгур","en":"Bulgur wheat"},"category":"GRAIN","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"iceberg_lettuce","name":{"ru":"Салат айсберг","en":"Iceberg lettuce"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"walnuts","name":{"ru":"Грецкие орехи","en":"Walnuts"},"category":"NUT","allergens":["TREE_NUTS"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"medjool_dates","name":{"ru":"Финики (меджул)","en":"Medjool dates"},"category":"FRUIT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":20}
+{"code":"jumbo_pasta_shells","name":{"ru":"Крупные макароны-ракушки (конкильони)","en":"Jumbo pasta shells"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":12}
+{"code":"fettuccine","name":{"ru":"Паста феттучине","en":"Fettuccine pasta"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"enchilada_sauce","name":{"ru":"Соус энчилада","en":"Enchilada sauce"},"category":"SAUCE_CONDIMENT","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"wild_rice","name":{"ru":"Рис дикий","en":"Wild rice"},"category":"GRAIN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"dried_cherries","name":{"ru":"Вишня сушёная","en":"Dried cherries"},"category":"FRUIT","allergens":["SULFITES"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"canned_mixed_beans","name":{"ru":"Смесь консервированной фасоли","en":"Canned mixed beans"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"peanuts","name":{"ru":"Арахис","en":"Peanuts"},"category":"NUT","allergens":["PEANUTS"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"prunes","name":{"ru":"Чернослив","en":"Prunes"},"category":"FRUIT","allergens":["SULFITES"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"mango","name":{"ru":"Манго","en":"Mango"},"category":"FRUIT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"ziti_pasta","name":{"ru":"Паста зити (трубочки)","en":"Ziti pasta"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"basmati_rice","name":{"ru":"Рис басмати","en":"Basmati rice"},"category":"GRAIN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"beef_chuck","name":{"ru":"Говядина (лопатка)","en":"Beef chuck"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"swordfish","name":{"ru":"Рыба-меч (стейк)","en":"Swordfish steak"},"category":"FISH","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"madeira_wine","name":{"ru":"Вино мадера","en":"Madeira wine"},"category":"ALCOHOL","allergens":["SULFITES"],"excludes":["HALAL"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"apricot_chutney","name":{"ru":"Абрикосовое чатни","en":"Apricot chutney"},"category":"SAUCE_CONDIMENT","allergens":["SULFITES"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"cardamom_pods","name":{"ru":"Кардамон (зелёные коробочки)","en":"Green cardamom pods"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":0.3}
+{"code":"sherry_vinegar","name":{"ru":"Хересный уксус","en":"Sherry vinegar"},"category":"SAUCE_CONDIMENT","allergens":["SULFITES"],"excludes":["HALAL"],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"fennel_bulb","name":{"ru":"Фенхель (клубень)","en":"Fennel bulb"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"canned_green_chilies","name":{"ru":"Перец чили зелёный консервированный (нарезанный)","en":"Canned diced green chilies"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"pork_tenderloin","name":{"ru":"Свиная вырезка","en":"Pork tenderloin"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","HALAL","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"pineapple","name":{"ru":"Ананас","en":"Pineapple"},"category":"FRUIT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"cajun_seasoning","name":{"ru":"Приправа каджун (смесь специй)","en":"Cajun seasoning"},"category":"SPICE","allergens":["CELERY"],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2.5}
+{"code":"provolone","name":{"ru":"Сыр проволоне","en":"Provolone cheese"},"category":"CHEESE","allergens":["MILK"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"beef_short_ribs","name":{"ru":"Говяжьи рёбра (на кости)","en":"Beef short ribs"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"creamed_corn","name":{"ru":"Кукуруза сливочная консервированная","en":"Creamed corn"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"mirin","name":{"ru":"Мирин (сладкое рисовое вино)","en":"Mirin"},"category":"ALCOHOL","allergens":[],"excludes":["HALAL"],"is_staple":false,"default_unit":"tbsp","grams_per_unit":18}
+{"code":"sake","name":{"ru":"Сакэ (рисовое вино)","en":"Sake"},"category":"ALCOHOL","allergens":[],"excludes":["HALAL"],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"fried_shallots","name":{"ru":"Жареный хрустящий лук (готовый)","en":"Crispy fried shallots"},"category":"OTHER","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"dark_soy_sauce","name":{"ru":"Тёмный соевый соус","en":"Dark soy sauce"},"category":"SAUCE_CONDIMENT","allergens":["SOY","WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":6}
+{"code":"swiss_cheese","name":{"ru":"Сыр швейцарский","en":"Swiss cheese"},"category":"CHEESE","allergens":["MILK"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"sherry_wine","name":{"ru":"Херес","en":"Sherry"},"category":"ALCOHOL","allergens":["SULFITES"],"excludes":["HALAL"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"snow_peas","name":{"ru":"Горошек сахарный стручковый (снежный горох)","en":"Snow peas"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"shiitake_mushrooms","name":{"ru":"Грибы шиитаке","en":"Shiitake mushrooms"},"category":"MUSHROOM","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"beef_eye_round","name":{"ru":"Говядина (тонкий край, ростбифная)","en":"Beef eye round roast"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"chana_dal","name":{"ru":"Чана-дал (колотый нут)","en":"Chana dal (split Bengal gram)"},"category":"LEGUME","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"dried_red_chili","name":{"ru":"Сушёный красный перец чили (стручки)","en":"Dried red chilli"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":1}
+{"code":"coconut_oil","name":{"ru":"Кокосовое масло","en":"Coconut oil"},"category":"OIL_FAT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":13}
+{"code":"paneer","name":{"ru":"Панир (индийский сыр)","en":"Paneer"},"category":"CHEESE","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"mango_chutney","name":{"ru":"Чатни из манго","en":"Mango chutney"},"category":"SAUCE_CONDIMENT","allergens":["SULFITES"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":20}
+{"code":"green_chili_pepper","name":{"ru":"Перец чили зелёный свежий","en":"Green chilli pepper"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":10}
+{"code":"red_chili_paste","name":{"ru":"Паста из красного чили","en":"Red chilli paste"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":5}
+{"code":"herbes_de_provence","name":{"ru":"Прованские травы (смесь)","en":"Herbes de Provence"},"category":"HERB_DRIED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"star_anise","name":{"ru":"Бадьян (звёздчатый анис)","en":"Star anise"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":1}
+{"code":"rice_noodles","name":{"ru":"Рисовая лапша","en":"Rice noodles"},"category":"PASTA","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"guajillo_chili","name":{"ru":"Перец чили гуахильо сушёный","en":"Dried guajillo chili"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":6}
+{"code":"hominy","name":{"ru":"Хоминни (консервированная кукуруза-нихтамаль)","en":"Canned hominy"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"can","grams_per_unit":425}
+{"code":"soba_noodles","name":{"ru":"Лапша соба (гречневая)","en":"Soba noodles"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"hot_sauce","name":{"ru":"Острый соус (табаско, луизианский)","en":"Hot sauce"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":5}
+{"code":"orange","name":{"ru":"Апельсин","en":"Orange"},"category":"FRUIT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":150}
+{"code":"halibut_fillet","name":{"ru":"Филе палтуса","en":"Halibut fillet"},"category":"FISH","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"halloumi","name":{"ru":"Сыр халуми","en":"Halloumi"},"category":"CHEESE","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"lebanese_seven_spice","name":{"ru":"Ливанская смесь семи специй (бахарат)","en":"Lebanese 7 spice"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2.5}
+{"code":"arborio_rice","name":{"ru":"Рис арборио (для ризотто)","en":"Arborio rice"},"category":"GRAIN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"smoked_sausage","name":{"ru":"Колбаса копчёная (кильбаса)","en":"Smoked sausage (kielbasa)"},"category":"SAUSAGE","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","HALAL","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"sweet_potato_noodles","name":{"ru":"Лапша из батата (данмён, стеклянная)","en":"Sweet potato noodles (dangmyun)"},"category":"PASTA","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"korma_paste","name":{"ru":"Паста карри корма","en":"Korma curry paste"},"category":"SAUCE_CONDIMENT","allergens":["MILK","TREE_NUTS","MUSTARD","CELERY"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":20}
+{"code":"seafood_mix","name":{"ru":"Морской коктейль (креветки, кальмары, мидии)","en":"Mixed seafood (prawns, squid, mussels)"},"category":"SEAFOOD","allergens":["SHELLFISH","MOLLUSCS"],"excludes":["VEGETARIAN","VEGAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"lard","name":{"ru":"Свиное сало топлёное","en":"Lard"},"category":"OIL_FAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","HALAL","KOSHER"],"is_staple":false,"default_unit":"tbsp","grams_per_unit":13}
+{"code":"mineral_water","name":{"ru":"Минеральная вода газированная","en":"Sparkling mineral water"},"category":"BEVERAGE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"gochujang","name":{"ru":"Кочуджан (корейская острая паста)","en":"Gochujang"},"category":"SAUCE_CONDIMENT","allergens":["SOY","WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":18}
+{"code":"kimchi","name":{"ru":"Кимчи (квашеная острая капуста)","en":"Kimchi"},"category":"VEGETABLE","allergens":["FISH","SHELLFISH"],"excludes":["VEGAN","VEGETARIAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"gochugaru","name":{"ru":"Гочугару (корейский красный перец хлопьями)","en":"Gochugaru (Korean chilli flakes)"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"pork_belly","name":{"ru":"Свиная грудинка","en":"Pork belly"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","HALAL","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"chipotle_paste","name":{"ru":"Паста чипотле (копчёный острый перец)","en":"Chipotle paste"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":5}
+{"code":"vermicelli","name":{"ru":"Вермишель (тонкая пшеничная)","en":"Vermicelli"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"canned_borlotti_beans","name":{"ru":"Фасоль борлотти консервированная","en":"Canned borlotti beans"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"can","grams_per_unit":400}
+{"code":"tortilla_chips","name":{"ru":"Чипсы тортилья","en":"Tortilla chips"},"category":"OTHER","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"baby_corn","name":{"ru":"Мини-кукуруза консервированная","en":"Canned baby corn"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"angel_hair_pasta","name":{"ru":"Паста «волосы ангела» (капеллини)","en":"Angel hair pasta (capellini)"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"instant_mashed_potato","name":{"ru":"Картофельное пюре быстрого приготовления (сухое)","en":"Instant mashed potato flakes"},"category":"OTHER","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"cotija","name":{"ru":"Сыр котиха","en":"Cotija cheese"},"category":"CHEESE","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"black_beans_dried","name":{"ru":"Фасоль чёрная сухая","en":"Dried black beans"},"category":"LEGUME","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"frozen_spinach","name":{"ru":"Шпинат замороженный","en":"Frozen spinach"},"category":"FROZEN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"dried_parsley","name":{"ru":"Петрушка сушёная","en":"Dried parsley"},"category":"HERB_DRIED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":1}
+{"code":"riced_cauliflower_broccoli","name":{"ru":"Цветная капуста и брокколи, рубленые замороженные","en":"Riced cauliflower and broccoli (frozen)"},"category":"FROZEN","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"egg_white","name":{"ru":"Яичный белок","en":"Egg white"},"category":"EGG","allergens":["EGGS"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"pcs","grams_per_unit":33}
+{"code":"grapefruit_juice","name":{"ru":"Сок грейпфрута","en":"Grapefruit juice"},"category":"BEVERAGE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"bok_choy","name":{"ru":"Бок-чой (пак-чой)","en":"Bok choy"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"poblano_pepper","name":{"ru":"Перец поблано","en":"Poblano pepper"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":120}
+{"code":"tomatillo","name":{"ru":"Томатилло (физалис овощной)","en":"Tomatillo"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"fenugreek_seeds","name":{"ru":"Пажитник (семена)","en":"Fenugreek seeds"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":3}
+{"code":"black_mustard_seeds","name":{"ru":"Горчичные семена чёрные","en":"Black mustard seeds"},"category":"SPICE","allergens":["MUSTARD"],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":3}
+{"code":"curry_leaves","name":{"ru":"Листья карри","en":"Curry leaves"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"leaf","grams_per_unit":0.3}
+{"code":"anchovy_fillets","name":{"ru":"Анчоусы (филе)","en":"Anchovy fillets"},"category":"FISH","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"pcs","grams_per_unit":3}
+{"code":"sunflower_seeds","name":{"ru":"Семечки подсолнечника очищенные","en":"Sunflower seeds (shelled)"},"category":"SEED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"croissant","name":{"ru":"Круассан","en":"Croissant"},"category":"BREAD","allergens":["WHEAT","GLUTEN","MILK","EGGS"],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":60}
+{"code":"havarti","name":{"ru":"Сыр гаварти","en":"Havarti cheese"},"category":"CHEESE","allergens":["MILK"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"salami","name":{"ru":"Салями","en":"Salami"},"category":"SAUSAGE","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER","HALAL"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"hemp_seeds","name":{"ru":"Семена конопли очищенные","en":"Hulled hemp seeds"},"category":"SEED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"parsnip","name":{"ru":"Пастернак","en":"Parsnip"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":150}
+{"code":"queso_fresco","name":{"ru":"Сыр кесо фреско","en":"Queso fresco"},"category":"CHEESE","allergens":["MILK"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"swiss_chard","name":{"ru":"Мангольд","en":"Swiss chard"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"okra","name":{"ru":"Окра","en":"Okra"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"canned_black_eyed_peas","name":{"ru":"Фасоль чёрный глаз (вигна) консервированная","en":"Canned black-eyed peas"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"savoy_cabbage","name":{"ru":"Капуста савойская","en":"Savoy cabbage"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"red_pesto","name":{"ru":"Красное песто (с вялеными томатами)","en":"Red pesto"},"category":"SAUCE_CONDIMENT","allergens":["MILK","TREE_NUTS","SULFITES"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"fish_bouillon","name":{"ru":"Рыбный бульонный кубик","en":"Fish stock cube"},"category":"OTHER","allergens":["FISH","CELERY"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"pcs","grams_per_unit":10}
+{"code":"mussels","name":{"ru":"Мидии","en":"Mussels"},"category":"SEAFOOD","allergens":["MOLLUSCS"],"excludes":["VEGETARIAN","VEGAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"creme_fraiche","name":{"ru":"Крем-фреш","en":"Crème fraîche"},"category":"DAIRY","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"tzatziki","name":{"ru":"Соус цацики","en":"Tzatziki sauce"},"category":"SAUCE_CONDIMENT","allergens":["MILK"],"excludes":["VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"cheese_tortellini","name":{"ru":"Тортеллини с сыром","en":"Cheese tortellini"},"category":"PASTA","allergens":["WHEAT","GLUTEN","EGGS","MILK"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"adjika","name":{"ru":"Аджика (острая перцовая паста)","en":"Adjika (hot pepper paste)"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":5}
+{"code":"pecans","name":{"ru":"Орех пекан","en":"Pecans"},"category":"NUT","allergens":["TREE_NUTS"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"dried_butter_beans","name":{"ru":"Фасоль белая крупная сухая (гигантес)","en":"Dried giant butter beans"},"category":"LEGUME","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"shortcrust_pastry","name":{"ru":"Песочное тесто","en":"Shortcrust pastry"},"category":"BAKING","allergens":["WHEAT","GLUTEN","MILK","EGGS"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"dashi","name":{"ru":"Бульон даси","en":"Dashi stock"},"category":"OTHER","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"glass_noodles","name":{"ru":"Фунчоза (стеклянная лапша)","en":"Glass noodles (mung bean vermicelli)"},"category":"PASTA","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"oat_milk","name":{"ru":"Овсяное молоко","en":"Oat milk"},"category":"BEVERAGE","allergens":["GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"baked_beans","name":{"ru":"Фасоль в томатном соусе (печёная)","en":"Baked beans in tomato sauce"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"puff_pastry","name":{"ru":"Слоёное тесто","en":"Puff pastry"},"category":"BAKING","allergens":["WHEAT","GLUTEN","MILK"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"dried_kidney_beans","name":{"ru":"Фасоль красная сухая","en":"Dried kidney beans"},"category":"LEGUME","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"caraway_seeds","name":{"ru":"Тмин (семена)","en":"Caraway seeds"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":2}
+{"code":"celeriac","name":{"ru":"Сельдерей корневой","en":"Celeriac"},"category":"VEGETABLE","allergens":["CELERY"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"sichuan_peppercorns","name":{"ru":"Сычуаньский перец (горошек)","en":"Sichuan peppercorns"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":6}
+{"code":"water_chestnuts","name":{"ru":"Водяные каштаны (консервированные)","en":"Water chestnuts (canned)"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"chili_oil","name":{"ru":"Острое масло чили","en":"Chilli oil"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":14}
+{"code":"refried_beans","name":{"ru":"Фасоль жареная пюре (рефрайд бинс)","en":"Refried beans"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"salsa_verde","name":{"ru":"Сальса верде (зелёная сальса)","en":"Salsa verde"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":16}
+{"code":"lima_beans","name":{"ru":"Фасоль лима","en":"Lima beans"},"category":"LEGUME","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"yellow_curry_paste","name":{"ru":"Паста жёлтого карри","en":"Yellow curry paste"},"category":"SAUCE_CONDIMENT","allergens":["SHELLFISH"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":15}
+{"code":"wonton_wrappers","name":{"ru":"Листы для вонтонов","en":"Wonton wrappers"},"category":"PASTA","allergens":["WHEAT","GLUTEN","EGGS"],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":7}
+{"code":"desiccated_coconut","name":{"ru":"Кокосовая стружка","en":"Desiccated coconut"},"category":"OTHER","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"gnocchi","name":{"ru":"Ньокки картофельные","en":"Potato gnocchi"},"category":"PASTA","allergens":["WHEAT","GLUTEN","EGGS"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"corn_on_the_cob","name":{"ru":"Кукуруза в початках","en":"Corn on the cob"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":250}
+{"code":"nigella_seeds","name":{"ru":"Семена калинджи (чёрный тмин)","en":"Nigella seeds"},"category":"SPICE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":3}
+{"code":"chia_seeds","name":{"ru":"Семена чиа","en":"Chia seeds"},"category":"SEED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":12}
+{"code":"whole_grain_bread","name":{"ru":"Хлеб цельнозерновой","en":"Whole-grain bread"},"category":"BREAD","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"slice","grams_per_unit":40}
+{"code":"apricot_jam","name":{"ru":"Джем абрикосовый","en":"Apricot jam"},"category":"SWEETENER","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"chili_garlic_sauce","name":{"ru":"Соус чили с чесноком","en":"Chilli garlic sauce"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"herring_fillet","name":{"ru":"Сельдь (филе, солёное в масле)","en":"Herring fillet (salted, in oil)"},"category":"FISH","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"beer","name":{"ru":"Пиво","en":"Beer"},"category":"ALCOHOL","allergens":["GLUTEN","SULFITES"],"excludes":["HALAL"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"veal","name":{"ru":"Телятина","en":"Veal"},"category":"MEAT","allergens":[],"excludes":["VEGETARIAN","VEGAN","PESCATARIAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"bourbon","name":{"ru":"Бурбон (виски)","en":"Bourbon"},"category":"ALCOHOL","allergens":[],"excludes":["HALAL"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"shaoxing_wine","name":{"ru":"Вино шаосин (китайское рисовое)","en":"Shaoxing wine"},"category":"ALCOHOL","allergens":["WHEAT","GLUTEN","SULFITES"],"excludes":["HALAL"],"is_staple":false,"default_unit":"ml","grams_per_unit":null}
+{"code":"chinese_black_vinegar","name":{"ru":"Уксус чёрный китайский (Чжэньцзян)","en":"Chinese black vinegar"},"category":"SAUCE_CONDIMENT","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":5}
+{"code":"daikon","name":{"ru":"Дайкон","en":"Daikon radish"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"harissa","name":{"ru":"Харисса (острый соус)","en":"Harissa sauce"},"category":"SAUCE_CONDIMENT","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"sea_bass_fillet","name":{"ru":"Филе сибаса (морского окуня)","en":"Sea bass fillet"},"category":"FISH","allergens":["FISH"],"excludes":["VEGETARIAN","VEGAN"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"canned_butter_beans","name":{"ru":"Белая фасоль консервированная (butter beans)","en":"Canned butter beans"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"miso_paste","name":{"ru":"Паста мисо","en":"Miso paste"},"category":"SAUCE_CONDIMENT","allergens":["SOY","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":18}
+{"code":"green_lentils","name":{"ru":"Чечевица зелёная сухая","en":"Dried green lentils"},"category":"LEGUME","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"wholemeal_noodles","name":{"ru":"Лапша цельнозерновая пшеничная","en":"Wholemeal wheat noodles"},"category":"PASTA","allergens":["WHEAT","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"tamari","name":{"ru":"Соус тамари","en":"Tamari"},"category":"SAUCE_CONDIMENT","allergens":["SOY","GLUTEN"],"excludes":[],"is_staple":false,"default_unit":"tsp","grams_per_unit":5}
+{"code":"scotch_bonnet_pepper","name":{"ru":"Перец скотч-боннет","en":"Scotch bonnet pepper"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":15}
+{"code":"all_purpose_seasoning","name":{"ru":"Универсальная приправа (смесь специй)","en":"All-purpose seasoning"},"category":"SPICE","allergens":["CELERY"],"excludes":[],"is_staple":false,"default_unit":"tbsp","grams_per_unit":8}
+{"code":"canned_cannellini_beans","name":{"ru":"Фасоль белая (каннеллини) консервированная","en":"Canned cannellini beans"},"category":"CANNED","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"dried_shrimp","name":{"ru":"Креветки сушёные","en":"Dried shrimp"},"category":"SEAFOOD","allergens":["SHELLFISH"],"excludes":["VEGETARIAN","VEGAN","KOSHER"],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"galangal","name":{"ru":"Галангал","en":"Galangal"},"category":"VEGETABLE","allergens":[],"excludes":[],"is_staple":false,"default_unit":"g","grams_per_unit":null}
+{"code":"lemongrass","name":{"ru":"Лемонграсс (стебель)","en":"Lemongrass stalk"},"category":"GREENS","allergens":[],"excludes":[],"is_staple":false,"default_unit":"pcs","grams_per_unit":30}

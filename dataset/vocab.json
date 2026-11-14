@@ -1,0 +1,29 @@
+{
+  "_comment": "Allowed codes for dataset records. Tag codes mirror src/utils/tagVocabulary.ts (UPPER_SNAKE of the column keys). Cuisines: the first 10 are seeded on the server; the rest are new and get inserted by build-sql (the Android Cuisine enum must learn them too).",
+  "languages": ["ru", "en"],
+  "cuisines": [
+    "ITALIAN", "JAPANESE", "CHINESE", "MEXICAN", "INDIAN", "THAI", "FRENCH", "AMERICAN", "MEDITERRANEAN", "KOREAN",
+    "RUSSIAN", "UKRAINIAN", "BELARUSIAN", "GEORGIAN", "ARMENIAN", "AZERBAIJANI", "UZBEK", "KAZAKH", "TATAR",
+    "GREEK", "SPANISH", "GERMAN", "BRITISH", "SCANDINAVIAN", "EASTERN_EUROPEAN", "TURKISH", "MIDDLE_EASTERN",
+    "VIETNAMESE", "INDONESIAN", "LATIN_AMERICAN", "AFRICAN", "INTERNATIONAL"
+  ],
+  "meal_types": ["BREAKFAST", "LUNCH", "DINNER", "SNACK"],
+  "courses": ["MAIN", "SIDE", "SOUP", "SALAD", "DESSERT", "BAKERY", "APPETIZER", "SAUCE", "DRINK"],
+  "units": ["g", "kg", "ml", "l", "pcs", "tbsp", "tsp", "clove", "pinch", "bunch", "slice", "can", "pack", "sprig", "leaf"],
+  "ingredient_categories": [
+    "VEGETABLE", "FRUIT", "BERRY", "GREENS", "MUSHROOM", "MEAT", "POULTRY", "OFFAL", "SAUSAGE", "FISH", "SEAFOOD",
+    "DAIRY", "CHEESE", "EGG", "GRAIN", "PASTA", "FLOUR", "BREAD", "LEGUME", "NUT", "SEED", "SPICE", "HERB_DRIED",
+    "OIL_FAT", "SAUCE_CONDIMENT", "SWEETENER", "BAKING", "CANNED", "FROZEN", "ALCOHOL", "BEVERAGE", "OTHER"
+  ],
+  "appliances": ["STOVE", "OVEN", "AIR_FRYER", "MICROWAVE", "GRILL", "MULTICOOKER", "BLENDER",
+                 "PRESSURE_COOKER", "STEAMER", "MIXER", "FOOD_PROCESSOR", "TOASTER"],
+  "server_appliances": ["STOVE", "OVEN", "AIR_FRYER", "MICROWAVE", "GRILL", "MULTICOOKER", "BLENDER"],
+  "allergens": ["MILK", "EGGS", "PEANUTS", "TREE_NUTS", "SOY", "WHEAT", "GLUTEN", "FISH", "SHELLFISH", "SESAME",
+                "MUSTARD", "CELERY", "LUPIN", "MOLLUSCS", "SULFITES"],
+  "dietary_restrictions": ["VEGETARIAN", "VEGAN", "PESCATARIAN", "HALAL", "KOSHER"],
+  "intolerances": ["LACTOSE", "GLUTEN", "FRUCTOSE", "HISTAMINE"],
+  "features": ["SPICY", "VERY_SPICY", "LOW_CARB", "HIGH_PROTEIN", "LOW_FAT", "LOW_CALORIE", "HIGH_FIBER",
+               "HIGH_SUGAR", "HIGH_SODIUM", "SWEET", "SUGAR_FREE"],
+  "agent_features": ["SWEET", "SUGAR_FREE"],
+  "diets": ["KETO", "PALEO", "MEDITERRANEAN", "DIABETIC_FRIENDLY", "LOW_GI"]
+}
