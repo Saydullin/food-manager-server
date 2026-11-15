@@ -12,7 +12,7 @@ export interface UserSettings {
 // The defaults a brand-new (or row-less) user's settings resolve to. Mirrors the
 // column defaults in schema.prisma so a missing row reads the same as a fresh one.
 export const DEFAULT_SETTINGS: UserSettings = {
-  language: 'en',
+  language: 'ru',
   theme: Theme.SYSTEM,
   pushNotificationsEnabled: true,
 };

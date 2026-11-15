@@ -156,12 +156,14 @@ while offline simply re-send later without needing to know whether the first att
 ## Settings
 
 Per-user client-side preferences: `language`, `theme`, and `pushNotificationsEnabled`. Every
-account gets a default set the moment it registers (`{ language: "en", theme: "SYSTEM",
+account gets a default set the moment it registers (`{ language: "ru", theme: "SYSTEM",
 pushNotificationsEnabled: true }`), so the client can read settings right after registration or
 login — either embedded in `GET /users/me`, or via the dedicated endpoint below. More settings
 may be added over time; treat the object as open and ignore unknown fields you don't use.
 
-- `language` — a BCP-47 language tag the client renders in (e.g. `"en"`, `"ru"`, `"en-US"`).
+- `language` — a BCP-47 language tag the client renders in (e.g. `"en"`, `"ru"`, `"en-US"`). The
+  Android app also sends it as `?lang=` for dish content, so this decides the language of recipes.
+  Defaults to `"ru"`, the language of the app's UI.
 - `theme` — one of `"LIGHT"`, `"DARK"`, `"SYSTEM"`. `SYSTEM` follows the device's OS theme;
   the client resolves it to light/dark at render time.
 - `pushNotificationsEnabled` — boolean; whether the client should show push notifications.
@@ -202,7 +204,10 @@ one language:
   "images": ["https://…1.jpg", …],    // 1..7, ordered (first = cover); [] if none
   "nutrition": {                      // nullable
     "calories": 320, "servings": 1,   // per serving
-    "protein": 24, "fat": 9, "carbs": 38   // grams, КБЖУ; any may be null
+    "protein": 24, "fat": 9, "carbs": 38,  // grams, КБЖУ; any may be null
+    "sugar": 4, "fiber": 2, "saturatedFat": 2,  // grams; null for most hand-made dishes
+    "sodium": 650,                    // milligrams
+    "servingWeight": 300              // grams of food in one serving
   },
   "tags": {                           // each an array of UPPER_SNAKE codes
     "allergens": ["FISH", "SOY", "SESAME"],
@@ -210,14 +215,37 @@ one language:
     "intolerances": [],
     "features": ["SPICY", "HIGH_PROTEIN", "LOW_FAT"],
     "diets": [],
-    "appliances": ["STOVE"]           // equipment the dish needs; [] = nothing special
+    "appliances": ["STOVE"],          // equipment to cook it with; [] = nothing special (see below)
+    "applianceOptions": [["OVEN", "AIR_FRYER"]]  // "any one of these" choices; [] for most dishes
   },
   "ingredients": [                    // language-agnostic; ordered as authored
-    { "id": "uuid", "ingredientId": "uuid", "name": "Tuna", "amount": 150, "unit": "g" }
+    { "id": "uuid", "ingredientId": "uuid", "name": "Tuna", "amount": 150, "unit": "g",
+      "optional": false,              // "for serving, if you like"
+      "toTaste": false }              // "salt to taste": amount is a hint at most, often 0
   ],
+  // Recipe metadata. Filled for dishes from the recipe dataset (dataset/); null ([] for
+  // mealTypes) on a dish authored in the admin panel.
+  "course": "MAIN",                   // MAIN | SIDE | SOUP | SALAD | DESSERT | BAKERY | APPETIZER | SAUCE | DRINK
+  "mealTypes": ["LUNCH", "DINNER"],   // BREAKFAST | LUNCH | DINNER | SNACK
+  "prepTimeMin": 15, "cookTimeMin": 30,
+  "totalTimeMin": 45,                 // includes passive time (marinating, resting)
+  "difficulty": 1,                    // 1 beginner .. 3 advanced
+  "priceLevel": 1,                    // 1 budget .. 3 expensive
+  "spiceLevel": 0,                    // 0 not spicy .. 3 very hot
+  "minAgeYears": 3,                   // from what age it's usually given to children
+  "containsAlcohol": false,
+  "storageDays": 3,                   // keeps this long in the fridge; null = eat right away
+  "freezable": true, "onePot": false,
+  "sourceUrl": "https://…",           // the page the recipe was adapted from (attribution)
   "createdAt": "…", "updatedAt": "…"
 }
 ```
+
+**Equipment.** A dish needs every appliance it requires plus one from each `applianceOptions`
+choice ("bake in the oven *or* the air fryer"). `tags.appliances` is what you'll cook with: the
+required ones plus one pick per choice — in `GET /dinner/suggestions` the pick is the one the
+user's kitchen has, elsewhere the recipe's first choice. (The admin shape's `tags.appliances` is
+the required ones only, which is what the admin form edits.)
 
 **Multi-language content.** Every endpoint below that returns a dish accepts an optional `?lang=`
 query param — a BCP-47 tag, e.g. `en`, `ru`, `en-US` (case-insensitive). If omitted, or if the dish
@@ -361,8 +389,12 @@ Body: `{ appliances: [...] }`, replaced in full. → 200 `{ kitchen }`
 
 ### GET /ingredients?search=&lang=  🔒
 Search the ingredient catalog (by name in any language) for the "what's at home" picker. Up to 50
-results, alphabetical by the name resolved to `lang`. Read-only: only admins add ingredients.
-→ 200 `{ ingredients: [{ id, name }] }`
+results, ordered for picking: names starting with `search` first, then words starting with it,
+then the rest; within each, the ingredients most recipes use first. Without `search` the list is
+the most-used ingredients, staples (salt, pepper, oil, water, sugar, flour, vinegar) left out —
+dinner assumes every kitchen has them. Read-only: only admins add ingredients.
+→ 200 `{ ingredients: [{ id, name, category }] }` — `category` is e.g. `VEGETABLE`, `POULTRY`,
+`DAIRY` (null for an admin-typed ingredient).
 
 ### GET /users/me/pantry?lang=  🔒
 What the user has at home (presence only, no quantities). → 200 `{ items: [{ ingredientId, name }] }`
@@ -378,31 +410,43 @@ Dishes that suit every selected eater. Query:
 - `includeSelf` — `true` (default) | `false`: whether the account owner is eating too. At least one
   eater is required.
 - `source` — `ANY` (default) or `AT_HOME` (cook from the pantry).
-- `maxMissing` — for `AT_HOME`, how many ingredients may still need buying (`0`–`10`, default `2`;
-  staples like salt and oil are rarely listed in a pantry).
+- `maxMissing` — for `AT_HOME`, how many ingredients may still need buying (`0`–`10`, default `2`).
+  Staples (salt, pepper, oil, water, sugar, flour, vinegar) and optional lines never count.
 - `limit` — `1`–`50`, default `20`. Not paginated: it's a short list, not a feed.
 
 A dish is suggested only if **all** of these hold:
 
 | Source | Rule |
 |---|---|
+| It's a dinner dish | `course` is `MAIN`, `SOUP` or `SALAD` and `mealTypes` has `DINNER` (unknown passes), and it has an ingredient list |
 | Each eater's allergens, diets, exceptions | exactly the feed's hard filters (see **The feed is personalized**) |
+| Each eater's `age` (the owner's profile `age` too) | the dish's `minAgeYears` is unknown or ≤ the youngest eater's age |
 | Each eater's taste exceptions (`avoid`, e.g. `SPICY`) | **excluded** (the feed only ranks these down) |
 | `LOW_CALORIE` | `LOW_CALORIE` feature, or ≤ 500 kcal per serving |
 | `LOW_FAT` | `LOW_FAT` feature, or ≤ 15 g fat per serving |
 | `LOW_CARB` | `LOW_CARB` feature, `KETO` diet, or ≤ 20 g carbs per serving |
 | `NO_SPICY` | neither `SPICY` nor `VERY_SPICY` |
 | `LOW_SALT` / `LOW_SUGAR` | not `HIGH_SODIUM` / not `HIGH_SUGAR` |
-| Kitchen (if answered) | the dish needs no appliance the kitchen lacks |
-| `source=AT_HOME` | the dish has an ingredient list, and at most `maxMissing` aren't in the pantry |
+| Kitchen (if answered) | the kitchen has every required appliance, and one from each `applianceOptions` choice |
+| `source=AT_HOME` | at most `maxMissing` needed ingredients aren't in the pantry (staples and optional lines don't count) |
 | History | the user hasn't `DISLIKE`d it (liked and skipped dishes are fine) |
 
-Order: for `AT_HOME`, fewest missing ingredients first; then the feed's ranking (the user's learned
-taste, plus every eater's `likes` as declared preferences); then newest.
+Order: for `AT_HOME`, fewest missing ingredients first; then a score made of
+- the feed's ranking (the user's learned taste, plus every eater's `likes` as declared preferences);
+- dinner fit: +1 for a main course, −0.75 past 90 minutes total (−1.5 past 180), −0.5 for
+  difficulty 3 — nudges, smaller than one declared preference (+2);
+- a daily shuffle of up to +1, the same all (UTC) day for a user and different the next, so a
+  user with no taste history doesn't get the same twenty dishes every evening.
 
 → 200 `{ suggestions: [{ food: dish, missingIngredients: [{ ingredientId, name, amount, unit }] }] }` —
-`missingIngredients` is the shopping list (ingredients not in the pantry); `[]` when the pantry is
-empty. Same best-effort caveat as the feed: the server can only filter on what dishes declare.
+`missingIngredients` is the shopping list (needed ingredients not in the pantry, never staples or
+optional lines); `[]` when the pantry is empty. Same best-effort caveat as the feed: the server can
+only filter on what dishes declare.
+
+### Loading the recipe dataset
+The recipe catalog comes from `dataset/out/*.jsonl` (see `dataset/README.md`). After
+`prisma migrate deploy`, run `npm run dataset:import`: it rebuilds `dataset/out/recipes.sql` and runs
+it against `DATABASE_URL`. Re-running refreshes imported dishes in place (upserts by dataset code).
 
 ## Complaints  🔒
 Lets a user report another user or a dish. Reports queue up for admin moderation (see below).

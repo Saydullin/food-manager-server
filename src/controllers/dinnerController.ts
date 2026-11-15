@@ -1,7 +1,7 @@
 import type { Response } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
 import * as dinnerService from '../services/dinnerService';
-import { listIngredients } from '../services/ingredientService';
+import { searchPantryIngredients } from '../services/ingredientService';
 import type { AuthenticatedRequest } from '../middleware/requireAuth';
 import type { DinnerQuery } from '../validation/householdSchemas';
 
@@ -17,13 +17,10 @@ export const getSuggestions = asyncHandler(async (req: AuthenticatedRequest, res
 
 // GET /ingredients?search=&lang= — the catalog, for the "what's at home" picker.
 export const searchIngredients = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const ingredients = await listIngredients(
+  const ingredients = await searchPantryIngredients(
     req.query.search as unknown as string | undefined,
     req.query.lang as unknown as string | undefined,
+    INGREDIENT_SEARCH_LIMIT,
   );
-  res.status(200).json({
-    ingredients: ingredients
-      .slice(0, INGREDIENT_SEARCH_LIMIT)
-      .map(({ id, name }) => ({ id, name })),
-  });
+  res.status(200).json({ ingredients });
 });

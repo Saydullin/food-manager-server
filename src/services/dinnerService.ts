@@ -1,6 +1,7 @@
 /**
- * "Cook dinner" suggestions: dishes that suit every selected eater, can be made with
- * the kitchen's equipment, and (optionally) mostly from what's at home.
+ * "Cook dinner" suggestions: dinner dishes that suit every selected eater (children's
+ * ages included), can be made with the kitchen's equipment, and (optionally) mostly
+ * from what's at home — staples like salt and oil assumed.
  *
  * Same two-phase shape as the feed (see recommendationService): score a lean
  * candidate set, then load the full dish shape for the handful being returned. The
@@ -19,12 +20,17 @@ import {
   toCandidate,
 } from './recommendationService';
 import {
+  DINNER_WEIGHTS,
   buildDinnerFilters,
   compareDinner,
   cookableFromPantry,
+  dailyShuffle,
+  dinnerFit,
   missingIngredientIds,
+  varietySeed,
   type DinnerCandidate,
   type DinnerEater,
+  type DishIngredient,
 } from './recommendation/dinner';
 import { buildDeclaredScoring, scoreCandidate } from './recommendation/ranking';
 
@@ -46,7 +52,10 @@ export interface MissingIngredientView {
 
 export interface DinnerSuggestion {
   food: FoodView;
-  /** Ingredients not in the pantry — a shopping list. [] when the pantry is empty. */
+  /**
+   * Needed ingredients not in the pantry — a shopping list. Optional lines and staples
+   * (salt, oil...) are never on it. [] when the pantry is empty.
+   */
   missingIngredients: MissingIngredientView[];
 }
 
@@ -55,6 +64,7 @@ const loadSelf = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
+      age: true,
       medicalRestrictions: true,
       foodPreferences: { select: { value: true } },
       foodExceptions: { select: { value: true } },
@@ -82,6 +92,7 @@ export const getDinnerSuggestions = async (
     foodExceptions: [...e.allergens, ...e.avoid],
     foodPreferences: e.likes,
     medicalRestrictions: e.medicalRestrictions,
+    age: e.age,
   }));
   if (includeSelf) {
     table.push({
@@ -89,10 +100,12 @@ export const getDinnerSuggestions = async (
       foodExceptions: self.foodExceptions.map((x) => x.value),
       foodPreferences: self.foodPreferences.map((p) => p.value),
       medicalRestrictions: self.medicalRestrictions,
+      age: self.age,
     });
   }
 
-  const { where, unmappedDiets } = buildDinnerFilters(table, self.kitchen?.appliances ?? null);
+  const kitchen = self.kitchen?.appliances ?? null;
+  const { where, unmappedDiets } = buildDinnerFilters(table, kitchen);
   if (unmappedDiets.length) {
     console.warn(
       `[dinner] user ${userId}: diet code(s) not filterable: ${unmappedDiets.join(', ')}`,
@@ -111,7 +124,17 @@ export const getDinnerSuggestions = async (
       },
       select: {
         ...candidateSelect,
-        ingredients: { select: { ingredientId: true }, orderBy: { position: 'asc' } },
+        course: true,
+        totalTimeMin: true,
+        difficulty: true,
+        ingredients: {
+          select: {
+            ingredientId: true,
+            optional: true,
+            ingredient: { select: { isStaple: true } },
+          },
+          orderBy: { position: 'asc' },
+        },
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: MAX_CANDIDATES,
@@ -119,6 +142,12 @@ export const getDinnerSuggestions = async (
     loadTasteSignals(userId),
     listCuisines(),
   ]);
+  if (rows.length === MAX_CANDIDATES) {
+    console.warn(
+      `[dinner] user ${userId}: candidate scan hit the ${MAX_CANDIDATES}-dish cap; ` +
+        'older matching dishes are not being ranked — move scoring into SQL.',
+    );
+  }
 
   // The table's combined likes are scored like the feed's declared preferences.
   const declared = buildDeclaredScoring(
@@ -126,28 +155,27 @@ export const getDinnerSuggestions = async (
     cuisineCodes,
     [],
   );
+  const seed = varietySeed(userId, new Date());
 
   const ranked: DinnerCandidate[] = rows
-    .filter(
-      (row) =>
-        !fromPantry ||
-        cookableFromPantry(
-          row.ingredients.map((i) => i.ingredientId),
-          pantry,
-          maxMissing,
-        ),
-    )
-    .map((row) => {
+    .map((row) => ({
+      row,
+      lines: row.ingredients.map((i): DishIngredient => ({
+        ingredientId: i.ingredientId,
+        optional: i.optional,
+        staple: i.ingredient.isStaple,
+      })),
+    }))
+    .filter(({ lines }) => !fromPantry || cookableFromPantry(lines, pantry, maxMissing))
+    .map(({ row, lines }) => {
       const candidate = toCandidate(row);
       return {
         ...candidate,
-        score: scoreCandidate(candidate, signals, declared),
-        missing: pantry.size
-          ? missingIngredientIds(
-              row.ingredients.map((i) => i.ingredientId),
-              pantry,
-            )
-          : [],
+        score:
+          scoreCandidate(candidate, signals, declared) +
+          dinnerFit(row) +
+          DINNER_WEIGHTS.variety * dailyShuffle(seed, row.id),
+        missing: pantry.size ? missingIngredientIds(lines, pantry) : [],
       };
     })
     .sort(compareDinner(fromPantry))
@@ -166,7 +194,8 @@ export const getDinnerSuggestions = async (
     suggestions: ranked.flatMap((candidate) => {
       const row = byId.get(candidate.id);
       if (!row) return [];
-      const food = shapeFood(row, lang);
+      // With the kitchen, "oven or air fryer" shows the one this user actually has.
+      const food = shapeFood(row, lang, kitchen);
       const missing = new Set(candidate.missing);
       return [
         {

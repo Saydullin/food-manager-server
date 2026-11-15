@@ -37,6 +37,52 @@ export const listIngredients = async (search?: string, lang: string = DEFAULT_LA
   return rows.map((r) => shapeIngredient(r, lang)).sort((a, b) => a.name.localeCompare(b.name));
 };
 
+export interface PantryIngredientView {
+  id: string;
+  name: string;
+  /** IngredientCategory code ("VEGETABLE"), null for an admin-typed ingredient. */
+  category: string | null;
+}
+
+/** How a name matches the query: whole-name prefix, a word's prefix, or anywhere. */
+const matchTier = (name: string, query: string): number => {
+  const n = name.toLocaleLowerCase();
+  if (n.startsWith(query)) return 0;
+  if (n.split(/[\s,()-]+/).some((word) => word.startsWith(query))) return 1;
+  return 2;
+};
+
+/**
+ * The user-facing search behind the "what's at home" picker. Unlike the admin list it
+ * is ordered for picking, not browsing: names starting with the query first, then by how
+ * many recipes use the ingredient — "Курица" before "Шафран", since an ingredient no
+ * recipe uses does nothing for the pantry match. With no query, staples (salt, oil...)
+ * are left out: dinner assumes every kitchen has them, so there's no point picking them.
+ */
+export const searchPantryIngredients = async (
+  search: string | undefined,
+  lang: string = DEFAULT_LANGUAGE,
+  limit = 50,
+): Promise<PantryIngredientView[]> => {
+  const query = search?.trim().toLocaleLowerCase();
+  const rows = await prisma.ingredient.findMany({
+    where: query
+      ? { translations: { some: { name: { contains: query, mode: 'insensitive' as const } } } }
+      : { isStaple: false },
+    select: { id: true, category: true, translations: { select: { language: true, name: true } } },
+    orderBy: [{ foodIngredients: { _count: 'desc' } }, { id: 'asc' }],
+    take: 200,
+  });
+  return rows
+    .map((row, popularity) => {
+      const name = pickByLanguage(row.translations, lang, DEFAULT_LANGUAGE)?.name ?? '';
+      return { view: { id: row.id, name, category: row.category }, popularity, tier: query ? matchTier(name, query) : 0 };
+    })
+    .sort((a, b) => a.tier - b.tier || a.popularity - b.popularity)
+    .slice(0, limit)
+    .map(({ view }) => view);
+};
+
 /**
  * Adds a new ingredient to the catalog with its first translation. Name
  * uniqueness within a language is case-sensitive at the DB level, matching the

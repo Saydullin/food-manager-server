@@ -263,8 +263,10 @@ enum Theme {
 model UserSettings {
   userId                   String   @id @db.Uuid
   user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  // BCP-47 language tag the client renders in (e.g. "en", "ru", "en-US").
-  language                 String   @default("en")
+  // BCP-47 language tag the client renders in (e.g. "en", "ru", "en-US"). Also the
+  // language dish content is requested in. Defaults to Russian, the language the app's
+  // UI is written in — an "en" default served English recipes inside a Russian app.
+  language                 String   @default("ru")
   theme                    Theme    @default(SYSTEM)
   pushNotificationsEnabled Boolean  @default(true)
   createdAt                DateTime @default(now())
@@ -388,18 +390,49 @@ model EmailVerificationToken {
 /// (images, extended details, etc.) would be fine since nothing depends on them,
 /// but none are modeled yet since none were requested.
 model Food {
-  id          String   @id @default(uuid()) @db.Uuid
+  id        String   @id @default(uuid()) @db.Uuid
   // Legacy single "cover" image. The 1..7-image gallery lives in FoodImage; this
   // stays as an optional cover/fallback (the API's `images` array falls back to it
   // when the food has no FoodImage rows yet).
-  imageUrl    String?
+  imageUrl  String?
   // The dish's cuisine, as a FK into the server-owned Cuisine catalog. Nullable —
   // a dish may be uncategorized. This is a FK to a *terminal* reference table
   // (nothing depends on Food through it), which the food_table.md rule allows.
-  cuisineId   String?  @db.Uuid
-  cuisine     Cuisine? @relation(fields: [cuisineId], references: [id], onDelete: SetNull)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  cuisineId String?  @db.Uuid
+  cuisine   Cuisine? @relation(fields: [cuisineId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ---- Recipe metadata (filled by the dataset import, see dataset/README.md) ----
+  // All nullable / empty by default: a dish authored in the admin panel has none of
+  // it, and every rule that reads these treats "unknown" as "no constraint".
+
+  // Stable dataset key ("chicken_plov_uzbek") of an imported dish; null for dishes
+  // authored in the admin panel. The import upserts by it, so re-importing refreshes
+  // a dish in place instead of duplicating it.
+  code            String?     @unique
+  // The page the recipe was adapted from — attribution, shown as "source".
+  sourceUrl       String?
+  course          DishCourse?
+  // Which meals the dish suits. Empty = unknown (treated as "any meal").
+  mealTypes       MealType[]  @default([])
+  prepTimeMin     Int?
+  cookTimeMin     Int?
+  // Includes passive time (marinating, resting, cooling).
+  totalTimeMin    Int?
+  // 1 = a beginner can do it, 2 = basic skills, 3 = advanced techniques.
+  difficulty      Int?
+  // 1 = budget, 2 = mid-range, 3 = expensive ingredients.
+  priceLevel      Int?
+  // 0 = not spicy at all .. 3 = very hot. The SPICY/VERY_SPICY features derive from it.
+  spiceLevel      Int?
+  // From what age the dish is usually given to children; dinner filters on it.
+  minAgeYears     Int?
+  containsAlcohol Boolean?
+  // How many days the cooked dish keeps in the fridge; null = eat it right away.
+  storageDays     Int?
+  freezable       Boolean?
+  onePot          Boolean?
 
   // Per-language name/description. Language-agnostic data (cuisine, nutrition,
   // allergens, images) stays directly on Food so it isn't duplicated per
@@ -411,6 +444,7 @@ model Food {
   features            FoodFeatures?
   diets               FoodDiets?
   appliances          FoodAppliances?
+  applianceOptions    FoodApplianceOption[]
   nutrition           FoodNutrition?
   images              FoodImage[]
   interactions        FoodInteraction[]
@@ -424,14 +458,35 @@ model Food {
   @@map("foods")
 }
 
+/// The course a dish is: what role it plays in a meal. Dinner suggestions only offer
+/// courses that make a dinner on their own (see recommendation/dinner.ts).
+enum DishCourse {
+  MAIN
+  SIDE
+  SOUP
+  SALAD
+  DESSERT
+  BAKERY
+  APPETIZER
+  SAUCE
+  DRINK
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
 /// A dish's name/description in one language. A dish has one row per supported
 /// language (at least one, its "default" language); the client requests a
 /// `lang` and the server falls back to the default when a translation is
 /// missing, so a partially-translated catalog never 404s.
 model FoodTranslation {
-  id     String @id @default(uuid()) @db.Uuid
-  foodId String @db.Uuid
-  food   Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid()) @db.Uuid
+  foodId      String   @db.Uuid
+  food        Food     @relation(fields: [foodId], references: [id], onDelete: Cascade)
   // BCP-47 language tag (e.g. "en", "ru"), same convention as UserSettings.language.
   language    String
   name        String
@@ -553,6 +608,24 @@ model FoodAppliances {
   @@map("food_appliances")
 }
 
+/// "Any one of these will do": a part of the recipe that works with several
+/// appliances (bake in the OVEN *or* the AIR_FRYER). A dish needs every appliance
+/// flagged in FoodAppliances, plus at least one appliance from *each* of these rows.
+/// Kept apart from FoodAppliances because that table's columns all mean "required",
+/// which can't express a choice. Most dishes have no rows here.
+model FoodApplianceOption {
+  id         String             @id @default(uuid()) @db.Uuid
+  foodId     String             @db.Uuid
+  food       Food               @relation(fields: [foodId], references: [id], onDelete: Cascade)
+  // In preference order: the first is what the recipe was written for.
+  appliances KitchenAppliance[]
+  position   Int                @default(0)
+
+  @@unique([foodId, position])
+  @@index([foodId])
+  @@map("food_appliance_options")
+}
+
 /// Per-serving nutrition for a dish. One row per food (1:1). Split out of Food so
 /// the core dish row stays lean and nutrition can grow (protein/fat/carbs — КБЖУ)
 /// without touching Food, mirroring how the tag tables are separated. All fields
@@ -562,14 +635,21 @@ model FoodNutrition {
   food   Food   @relation(fields: [foodId], references: [id], onDelete: Cascade)
 
   // Energy per serving, in kilocalories.
-  calories Int?
+  calories      Int?
   // How many servings the dish yields.
-  servings Int?
+  servings      Int?
   // КБЖУ macros per serving, in grams. Optional; here so future recommendation
   // scoring can use them without another migration.
-  protein  Float?
-  fat      Float?
-  carbs    Float?
+  protein       Float?
+  fat           Float?
+  carbs         Float?
+  // The rest of the label, per serving: grams, except sodium (milligrams) and
+  // servingWeight (grams of food in one serving).
+  sugar         Float?
+  fiber         Float?
+  saturatedFat  Float?
+  sodium        Float?
+  servingWeight Float?
 
   @@map("food_nutrition")
 }
@@ -600,15 +680,59 @@ model FoodImage {
 /// language (see IngredientTranslation). Shared across recipes: one row per
 /// distinct ingredient, referenced by many FoodIngredient rows.
 model Ingredient {
-  id        String   @id @default(uuid()) @db.Uuid
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String              @id @default(uuid()) @db.Uuid
+  // Stable dataset key ("onion", "chicken_breast") of an imported ingredient; null
+  // for one an admin typed in. The import matches by it (and adopts an admin row
+  // with the same name), so the catalog never gets a second "Onion".
+  code      String?             @unique
+  category  IngredientCategory?
+  // Something nearly every kitchen has (salt, pepper, oil, water, sugar, flour):
+  // never counted as missing from the pantry, so it doesn't eat up "maxMissing".
+  isStaple  Boolean             @default(false)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
 
   translations    IngredientTranslation[]
   foodIngredients FoodIngredient[]
   pantryItems     UserPantryItem[]
 
   @@map("ingredients")
+}
+
+/// What kind of product an ingredient is — for grouping the pantry picker.
+enum IngredientCategory {
+  VEGETABLE
+  FRUIT
+  BERRY
+  GREENS
+  MUSHROOM
+  MEAT
+  POULTRY
+  OFFAL
+  SAUSAGE
+  FISH
+  SEAFOOD
+  DAIRY
+  CHEESE
+  EGG
+  GRAIN
+  PASTA
+  FLOUR
+  BREAD
+  LEGUME
+  NUT
+  SEED
+  SPICE
+  HERB_DRIED
+  OIL_FAT
+  SAUCE_CONDIMENT
+  SWEETENER
+  BAKING
+  CANNED
+  FROZEN
+  ALCOHOL
+  BEVERAGE
+  OTHER
 }
 
 /// An ingredient's name in one language. Mirrors FoodTranslation exactly — an
@@ -648,6 +772,10 @@ model FoodIngredient {
   amount       Float
   unit         String     @default("g")
   position     Int        @default(0)
+  // "For serving, if you like" — not needed to cook the dish, so never missing.
+  optional     Boolean    @default(false)
+  // "Salt to taste": `amount` is then a hint at most, often 0.
+  toTaste      Boolean    @default(false)
   createdAt    DateTime   @default(now())
 
   // One line per (recipe, ingredient) — re-adding the same ingredient updates

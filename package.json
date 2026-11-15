@@ -16,6 +16,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "admin:create": "tsx src/scripts/createAdmin.ts",
+    "dataset:build": "node dataset/scripts/build-sql.mjs",
+    "dataset:import": "node dataset/scripts/build-sql.mjs && prisma db execute --file dataset/out/recipes.sql --schema prisma/schema.prisma",
     "parse:emall": "tsx src/scripts/parseEmallProduct.ts"
   },
   "keywords": [],

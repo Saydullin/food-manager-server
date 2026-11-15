@@ -12,6 +12,7 @@ import {
   toTagCode,
 } from '../utils/tagVocabulary';
 import { ensureUserExists } from './userService';
+import { appliancesToUse } from './recommendation/dinner';
 
 // The tag vocabulary now lives in utils/tagVocabulary (a dependency-free module, so
 // the recommendation ranking can share it and still be unit-testable without a DB).
@@ -40,8 +41,16 @@ export interface FoodTags {
   intolerances: string[];
   features: string[];
   diets: string[];
-  /** Equipment the dish needs (KitchenAppliance codes, e.g. "OVEN"); [] = nothing special. */
+  /**
+   * Equipment to cook the dish with (KitchenAppliance codes, e.g. "OVEN"); [] = nothing
+   * special. On the public shape this is what you'll actually use: every required appliance
+   * plus one pick from each of `applianceOptions` (the one your kitchen has, when the
+   * response knows your kitchen — dinner suggestions — otherwise the recipe's first choice).
+   * On the admin shape it is the required ones only, i.e. the FoodAppliances columns.
+   */
   appliances: string[];
+  /** "Any one of these" choices, e.g. [["OVEN","AIR_FRYER"]]; [] for most dishes. */
+  applianceOptions: string[][];
 }
 
 export interface FoodNutritionView {
@@ -50,6 +59,36 @@ export interface FoodNutritionView {
   protein: number | null;
   fat: number | null;
   carbs: number | null;
+  sugar: number | null;
+  fiber: number | null;
+  saturatedFat: number | null;
+  /** Milligrams. */
+  sodium: number | null;
+  /** Grams of food in one serving. */
+  servingWeight: number | null;
+}
+
+/**
+ * Recipe metadata from the dataset import; every field is null (mealTypes []) for a dish
+ * authored in the admin panel. Times are minutes; difficulty/priceLevel are 1..3,
+ * spiceLevel 0..3.
+ */
+export interface FoodRecipeInfo {
+  course: string | null;
+  mealTypes: string[];
+  prepTimeMin: number | null;
+  cookTimeMin: number | null;
+  totalTimeMin: number | null;
+  difficulty: number | null;
+  priceLevel: number | null;
+  spiceLevel: number | null;
+  minAgeYears: number | null;
+  containsAlcohol: boolean | null;
+  storageDays: number | null;
+  freezable: boolean | null;
+  onePot: boolean | null;
+  /** The page the recipe was adapted from (attribution). */
+  sourceUrl: string | null;
 }
 
 // The language a dish is translated into, when a client requests it. The dish
@@ -77,6 +116,10 @@ export interface FoodIngredientView {
   name: string;
   amount: number;
   unit: string;
+  /** Not needed to cook the dish ("for serving, if you like"). */
+  optional: boolean;
+  /** "To taste": `amount` is a hint at most, often 0. */
+  toTaste: boolean;
 }
 
 // The admin-panel shape for an ingredient line: every translation the catalog
@@ -86,7 +129,7 @@ export interface AdminFoodIngredientView extends FoodIngredientView {
   translations: { language: string; name: string }[];
 }
 
-export interface FoodView {
+export interface FoodView extends FoodRecipeInfo {
   id: string;
   name: string;
   description: string | null;
@@ -150,12 +193,15 @@ export const foodInclude = {
   features: true,
   diets: true,
   appliances: true,
+  applianceOptions: { select: { appliances: true }, orderBy: { position: 'asc' } },
   ingredients: {
     select: {
       id: true,
       ingredientId: true,
       amount: true,
       unit: true,
+      optional: true,
+      toTaste: true,
       ingredient: { select: { translations: { select: { language: true, name: true } } } },
     },
     orderBy: { position: 'asc' },
@@ -187,6 +233,11 @@ const sharedFoodFields = (row: FoodRow) => ({
         protein: row.nutrition.protein,
         fat: row.nutrition.fat,
         carbs: row.nutrition.carbs,
+        sugar: row.nutrition.sugar,
+        fiber: row.nutrition.fiber,
+        saturatedFat: row.nutrition.saturatedFat,
+        sodium: row.nutrition.sodium,
+        servingWeight: row.nutrition.servingWeight,
       }
     : null,
   tags: {
@@ -196,15 +247,44 @@ const sharedFoodFields = (row: FoodRow) => ({
     features: trueTags(row.features),
     diets: trueTags(row.diets),
     appliances: trueTags(row.appliances),
+    applianceOptions: row.applianceOptions.map((o) => [...o.appliances]),
   },
+  course: row.course,
+  mealTypes: [...row.mealTypes],
+  prepTimeMin: row.prepTimeMin,
+  cookTimeMin: row.cookTimeMin,
+  totalTimeMin: row.totalTimeMin,
+  difficulty: row.difficulty,
+  priceLevel: row.priceLevel,
+  spiceLevel: row.spiceLevel,
+  minAgeYears: row.minAgeYears,
+  containsAlcohol: row.containsAlcohol,
+  storageDays: row.storageDays,
+  freezable: row.freezable,
+  onePot: row.onePot,
+  sourceUrl: row.sourceUrl,
   createdAt: row.createdAt,
   updatedAt: row.updatedAt,
 });
 
-export const shapeFood = (row: FoodRow, lang: string = DEFAULT_LANGUAGE): FoodView => {
+/**
+ * The client-facing dish. `kitchen` is the viewer's equipment when the caller knows it
+ * (dinner suggestions): it decides which appliance of each "any one of these" choice is
+ * shown in `tags.appliances`. Without it, the recipe's own first choice is shown.
+ */
+export const shapeFood = (
+  row: FoodRow,
+  lang: string = DEFAULT_LANGUAGE,
+  kitchen: readonly string[] | null = null,
+): FoodView => {
   const translation = pickByLanguage(row.translations, lang, DEFAULT_LANGUAGE);
+  const shared = sharedFoodFields(row);
   return {
-    ...sharedFoodFields(row),
+    ...shared,
+    tags: {
+      ...shared.tags,
+      appliances: appliancesToUse(shared.tags.appliances, shared.tags.applianceOptions, kitchen),
+    },
     name: translation?.name ?? '',
     description: translation?.description ?? null,
     content: translation?.content ?? null,
@@ -216,6 +296,8 @@ export const shapeFood = (row: FoodRow, lang: string = DEFAULT_LANGUAGE): FoodVi
       name: pickByLanguage(i.ingredient.translations, lang, DEFAULT_LANGUAGE)?.name ?? '',
       amount: i.amount,
       unit: i.unit,
+      optional: i.optional,
+      toTaste: i.toTaste,
     })),
   };
 };
@@ -235,6 +317,8 @@ export const shapeFoodAdmin = (row: FoodRow): AdminFoodView => ({
     name: pickByLanguage(i.ingredient.translations, DEFAULT_LANGUAGE, DEFAULT_LANGUAGE)?.name ?? '',
     amount: i.amount,
     unit: i.unit,
+    optional: i.optional,
+    toTaste: i.toTaste,
     translations: i.ingredient.translations,
   })),
 });
